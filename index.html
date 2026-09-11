@@ -234,6 +234,26 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 .bd-warn{padding:9px 14px;background:#3a2f1180;border-bottom:1px solid #272d45;color:#fcd34d;font-size:.73rem;line-height:1.45}
 .cat-row .cavg{font-size:.74rem;font-weight:600;color:#f87171;white-space:nowrap;min-width:66px;text-align:right;opacity:.85}
 @media(max-width:720px){.cat-row .cavg{display:none}}
+
+.bd-tools{padding:9px 14px;border-bottom:1px solid #272d45}
+.bd-inp{width:100%;box-sizing:border-box;background:#0d0f1a;border:1px solid #272d45;border-radius:7px;
+  padding:7px 10px;color:var(--text,#eaecf4);font-size:.78rem;font-family:inherit;outline:none}
+.bd-inp:focus{border-color:#6366f1}
+.bd-inp::placeholder{color:#4d5573}
+.bd-hdr{display:grid;grid-template-columns:1fr auto auto;gap:12px;padding:7px 14px;border-bottom:1px solid #272d45;background:#12151f}
+.bd-h{font-size:.7rem;font-weight:600;color:var(--muted,#6b7194);cursor:pointer;user-select:none;text-transform:uppercase;letter-spacing:.4px}
+.bd-h:hover{color:#eaecf4}
+.bd-h.on{color:#818cf8}
+.bd-h i{font-style:normal;opacity:.65;font-size:.66rem;margin-left:2px}
+.bd-hdr #bd-h-fecha{min-width:42px;text-align:right}
+.bd-hdr #bd-h-monto{min-width:92px;text-align:right}
+.bd-row .bd-nm{display:flex;align-items:center;gap:6px}
+.bd-ex{opacity:0;cursor:pointer;color:#6b7194;font-size:.82rem;flex:0 0 auto;transition:opacity .12s}
+.bd-row:hover .bd-ex{opacity:.55}
+.bd-ex:hover{opacity:1!important;color:#f87171}
+.bd-filt{color:#fcd34d}
+.bd-clr{margin-left:7px;cursor:pointer;color:#818cf8;text-decoration:underline}
+.bd-clr:hover{color:#a5b4fc}
 </style>
 </head>
 <body>
@@ -2559,38 +2579,91 @@ const avgLinePlugin={
   }
 };
 
-// ── detalle desplegable al pinchar una barra ──
-function closeBarDetail(){const d=document.getElementById('d-bardetail');if(d)d.innerHTML='';}
+// ── detalle desplegable al pinchar una barra (ordenable + filtrable) ──
+let bdS={cat:null,mes:null,txs:[],sk:'fecha',sd:1,q:''};
+function closeBarDetail(){const d=document.getElementById('d-bardetail');if(d)d.innerHTML='';bdS.txs=[];}
+
+function bdMatch(t,q){
+  if(!q.trim())return true;
+  const hay=(t.desc+' '+t.fecha+' '+t.monto).toLowerCase();
+  for(const term of q.toLowerCase().split(/\s+/).filter(Boolean)){
+    if(term[0]==='-'){ const w=term.slice(1); if(w&&hay.includes(w))return false; }
+    else if(!hay.includes(term))return false;
+  }
+  return true;
+}
+function bdCmp(a,b,k,d){
+  let r=0;
+  if(k==='desc') r=a.desc.localeCompare(b.desc,'es',{sensitivity:'base'});
+  else if(k==='monto') r=a.monto-b.monto;
+  else { const A=a.fecha.slice(3,5)+a.fecha.slice(0,2), B=b.fecha.slice(3,5)+b.fecha.slice(0,2);
+         r = A===B ? a.monto-b.monto : (A<B?-1:1); }
+  return r*d;
+}
+function bdSort(k){ if(bdS.sk===k)bdS.sd*=-1; else {bdS.sk=k;bdS.sd=1;} bdRender(); }
+function bdQuery(v){ bdS.q=v; bdRender(); }
+function bdExcluir(desc){
+  const el=document.getElementById('bd-q'); if(!el)return;
+  const tok='-'+String(desc).toLowerCase().split(/\s+/)[0];
+  if(!el.value.toLowerCase().includes(tok)) el.value=(el.value+' '+tok).trim();
+  bdQuery(el.value);
+}
+function bdLimpiar(){ const el=document.getElementById('bd-q'); if(el)el.value=''; bdQuery(''); }
+
+function bdRender(){
+  const list=document.getElementById('bd-list'); if(!list)return;
+  const vis=bdS.txs.filter(t=>bdMatch(t,bdS.q)).sort((a,b)=>bdCmp(a,b,bdS.sk,bdS.sd));
+  const tot=vis.reduce((s,t)=>s+t.monto,0);
+  list.innerHTML = vis.length
+    ? vis.map(t=>`<div class="bd-row">
+        <div class="bd-nm">${t.desc}<span class="bd-ex" title="Excluir" onclick="event.stopPropagation();bdExcluir('${String(t.desc).replace(/'/g,"\\'")}')">⊘</span></div>
+        <div class="bd-f">${t.fecha}</div>
+        <div class="bd-m${t.monto<0?' neg':''}">${t.monto<0?'- '+fl(Math.abs(t.monto)):fl(t.monto)}</div></div>`).join('')
+    : `<div class="bd-empty">Ningún movimiento coincide con el filtro</div>`;
+  const cnt=document.getElementById('bd-cnt');
+  if(cnt) cnt.innerHTML = vis.length===bdS.txs.length
+    ? `${bdS.txs.length} movimiento${bdS.txs.length===1?'':'s'} · <b>${fl(tot)}</b>`
+    : `<span class="bd-filt">${vis.length} de ${bdS.txs.length}</span> · <b>${fl(tot)}</b> <span class="bd-clr" onclick="bdLimpiar()">limpiar filtro</span>`;
+  ['desc','fecha','monto'].forEach(k=>{
+    const h=document.getElementById('bd-h-'+k); if(!h)return;
+    h.classList.toggle('on',bdS.sk===k);
+    h.querySelector('i').textContent = bdS.sk===k ? (bdS.sd===1?'▲':'▼') : '⇅';
+  });
+}
+
 function showBarDetail(catKey, monthKey){
   const box=document.getElementById('d-bardetail'); if(!box)return;
   const cat=CATS.find(c=>c.key===catKey); if(!cat)return;
   const mo=MONTHS.find(m=>m.k===monthKey);
   const ico=COLORS[CATS.findIndex(c=>c.key===catKey)%COLORS.length];
-  const txs=getTX(catKey,monthKey).slice().sort((a,b)=>{
-    const A=a.fecha.slice(3,5)+a.fecha.slice(0,2), B=b.fecha.slice(3,5)+b.fecha.slice(0,2);
-    return A===B ? b.monto-a.monto : (A<B?-1:1);
-  });
-  const total=txs.reduce((s,t)=>s+t.monto,0);
-  const barra=cat[monthKey]||0;
-  const falta=barra-total;
+  bdS={cat:cat,mes:mo,txs:getTX(catKey,monthKey).slice(),sk:'fecha',sd:1,q:''};
+  const total=bdS.txs.reduce((s,t)=>s+t.monto,0);
+  const barra=cat[monthKey]||0, falta=barra-total;
   const aviso = Math.abs(falta)>1
     ? `<div class="bd-warn">⚠️ El gráfico marca ${fl(barra)} para este mes, pero el detalle cargado suma ${fl(total)}. ${falta>0?'Faltan '+fl(falta)+' en movimientos':'Hay '+fl(-falta)+' de más'} — los meses anteriores a julio se cargaron desde los totales de la cartola y el detalle quedó incompleto.</div>`
     : '';
-  const rows = txs.length
-    ? txs.map(t=>`<div class="bd-row"><div class="bd-nm">${t.desc}</div><div class="bd-f">${t.fecha}</div><div class="bd-m${t.monto<0?' neg':''}">${t.monto<0?'- '+fl(Math.abs(t.monto)):fl(t.monto)}</div></div>`).join('')
-    : `<div class="bd-empty">Sin movimientos registrados para ${cat.label} en ${mo?mo.label:monthKey}</div>`;
   box.innerHTML=`<div class="bd-box">
       <div class="bd-head">
         <div class="bd-ico" style="background:${ico}20;color:${ico}">${cat.icon}</div>
-        <div><div class="bd-ttl">${cat.label}</div><div class="bd-sub">${mo?mo.label:monthKey} · ${txs.length} movimiento${txs.length===1?'':'s'}</div></div>
-        <div class="bd-tot"><b>${fl(total)}</b><span class="bd-sub">total</span></div>
+        <div><div class="bd-ttl">${cat.label}</div><div class="bd-sub">${mo?mo.label:monthKey}</div></div>
+        <div class="bd-tot"><span id="bd-cnt" class="bd-sub"></span></div>
         <span class="bd-x" onclick="closeBarDetail()" title="Cerrar">✕</span>
       </div>
       ${aviso}
-      <div class="bd-list">${rows}</div>
+      <div class="bd-tools">
+        <input id="bd-q" class="bd-inp" type="search" placeholder="Filtrar…  usa -palabra para excluir (ej: apple  -canva)" oninput="bdQuery(this.value)">
+      </div>
+      <div class="bd-hdr">
+        <div id="bd-h-desc"  class="bd-h" onclick="bdSort('desc')">Descripción <i>⇅</i></div>
+        <div id="bd-h-fecha" class="bd-h" onclick="bdSort('fecha')">Fecha <i>⇅</i></div>
+        <div id="bd-h-monto" class="bd-h" onclick="bdSort('monto')">Monto <i>⇅</i></div>
+      </div>
+      <div class="bd-list" id="bd-list"></div>
     </div>`;
+  bdRender();
   box.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
+
 
 // ════════════════════════════════════════════════
 //  MOVIMIENTOS
