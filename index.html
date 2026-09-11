@@ -1,0 +1,2732 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard de Gastos Personales</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js" integrity="sha384-iU8HYtnGQ8Cy4zl7gbNMOhsDTTKX02BTXptVP/vqAWIaTfM7isw76iyZCsjL2eVi" crossorigin="anonymous"></script>
+<style>
+:root{
+  color-scheme:dark;
+  --bg:#0d0f1a;--surface:#161925;--surface2:#1f2336;
+  --border:#272d45;--text:#eaecf4;--muted:#6b7194;
+  --ca:#f59e0b;--cb:#ef4444;
+  --ea:#6366f1;--eb:#06b6d4;
+  --pa:#10b981;--pb:#3b82f6;
+  --aa:#22c55e;--ab:#16a34a;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{background:#0d0f1a;}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;}
+.view{display:none;}.view.active{display:block;}
+
+/* ── LANDING ── */
+#landing{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;}
+.lh{text-align:center;margin-bottom:36px;}
+.lh h1{font-size:1.9rem;font-weight:800;background:linear-gradient(135deg,#6366f1,#06b6d4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px;}
+.lh p{color:var(--muted);font-size:.88rem;}
+.lh .per{display:inline-block;margin-top:10px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:4px 14px;font-size:.75rem;color:var(--muted);}
+.mmtabs{display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap;}
+.mmtab{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:7px 18px;cursor:pointer;font-size:.82rem;color:var(--muted);transition:all .2s;}
+.mmtab.active{background:linear-gradient(135deg,#6366f1,#06b6d4);color:#fff;border-color:transparent;}
+
+/* summary strip */
+.strip{display:flex;gap:0;background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;width:100%;max-width:900px;margin-bottom:24px;}
+.si{flex:1;padding:14px 20px;text-align:center;border-right:1px solid var(--border);}
+.si:last-child{border-right:none;}
+.si .sl{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px;}
+.si .sv{font-size:1rem;font-weight:800;}
+.si .sbal{font-size:.65rem;margin-top:3px;}
+
+.gcards{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;width:100%;max-width:900px;margin-bottom:20px;}
+@media(max-width:680px){.gcards{grid-template-columns:1fr;}}
+.gc{border-radius:18px;padding:26px 22px;cursor:pointer;position:relative;overflow:hidden;transition:transform .22s,box-shadow .22s;border:1px solid transparent;}
+.gc:hover{transform:translateY(-5px);box-shadow:0 18px 50px rgba(0,0,0,.5);}
+.gc.c{background:linear-gradient(145deg,#1c1410,#1a0e0e);border-color:#7c3f0040;}
+.gc.e{background:linear-gradient(145deg,#10111f,#0a1020);border-color:#30327040;}
+.gc.p{background:linear-gradient(145deg,#0a1a14,#0a1020);border-color:#1a4a3040;}
+.gi{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;margin-bottom:14px;}
+.gc.c .gi{background:linear-gradient(135deg,rgba(245,158,11,.2),rgba(239,68,68,.2));}
+.gc.e .gi{background:linear-gradient(135deg,rgba(99,102,241,.2),rgba(6,182,212,.2));}
+.gc.p .gi{background:linear-gradient(135deg,rgba(16,185,129,.2),rgba(59,130,246,.2));}
+.gc h2{font-size:1.05rem;font-weight:700;margin-bottom:3px;}
+.gc.c h2{color:#fbbf24;}.gc.e h2{color:#818cf8;}.gc.p h2{color:#34d399;}
+.gc .gsub{font-size:.73rem;color:var(--muted);margin-bottom:14px;}
+.gc .gt{font-size:1.5rem;font-weight:800;}
+.gc.c .gt{color:#f59e0b;}.gc.e .gt{color:#818cf8;}.gc.p .gt{color:#34d399;}
+.chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:12px;}
+.chip{font-size:.65rem;padding:2px 8px;border-radius:10px;border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.55);}
+.gc .arr{position:absolute;bottom:18px;right:18px;font-size:1.1rem;opacity:.35;transition:opacity .2s;}
+.gc:hover .arr{opacity:1;}
+
+/* abonos card */
+.abocard{border-radius:18px;padding:22px 26px;cursor:pointer;position:relative;width:100%;max-width:900px;margin-bottom:20px;background:linear-gradient(145deg,#081a0e,#0a1a10);border:1px solid #16532440;transition:transform .22s,box-shadow .22s;display:flex;align-items:center;gap:24px;}
+.abocard:hover{transform:translateY(-4px);box-shadow:0 18px 50px rgba(0,0,0,.5);}
+.abocard .abi{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.6rem;background:linear-gradient(135deg,rgba(34,197,94,.2),rgba(22,163,74,.2));flex-shrink:0;}
+.abocard .abt{flex:1;}
+.abocard h2{font-size:1.05rem;font-weight:700;color:#4ade80;margin-bottom:2px;}
+.abocard .absub{font-size:.75rem;color:var(--muted);}
+.abotot{text-align:right;}
+.abotot .abtv{font-size:1.6rem;font-weight:800;color:#4ade80;}
+.abotot .abn{font-size:.72rem;color:var(--muted);margin-top:2px;}
+.abocard .arr{font-size:1.1rem;opacity:.35;transition:opacity .2s;margin-left:12px;}
+.abocard:hover .arr{opacity:1;}
+
+/* balance bar */
+.balance-bar{width:100%;max-width:900px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin-bottom:20px;display:flex;align-items:center;gap:16px;}
+.bal-label{font-size:.75rem;color:var(--muted);white-space:nowrap;}
+.bal-track{flex:1;height:8px;background:var(--surface2);border-radius:4px;overflow:hidden;position:relative;}
+.bal-fill-g{height:100%;border-radius:4px;background:linear-gradient(90deg,#ef4444,#f59e0b);position:absolute;left:0;top:0;transition:width .5s;}
+.bal-fill-a{height:100%;border-radius:4px;background:linear-gradient(90deg,#22c55e,#16a34a);position:absolute;left:0;top:0;transition:width .5s;opacity:.7;}
+.bal-val{font-size:.78rem;font-weight:700;white-space:nowrap;}
+.bal-pos{color:#4ade80;}.bal-neg{color:#f87171;}
+
+.edit-btn{background:var(--surface2);border:1px solid var(--border);color:var(--muted);border-radius:10px;padding:9px 20px;cursor:pointer;font-size:.83rem;transition:all .2s;display:flex;align-items:center;gap:6px;}
+.edit-btn:hover{color:var(--text);border-color:#6366f1;}
+
+/* ── DETAIL ── */
+#detail{padding:0;}
+.dh{padding:28px 28px 0;border-bottom:1px solid var(--border);margin-bottom:24px;}
+.back{display:inline-flex;align-items:center;gap:7px;background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:7px 14px;cursor:pointer;font-size:.8rem;color:var(--muted);margin-bottom:16px;transition:all .2s;}
+.back:hover{color:var(--text);border-color:#6366f1;}
+.dtitle{display:flex;align-items:center;gap:12px;margin-bottom:22px;}
+.dbi{width:50px;height:50px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.6rem;}
+.dtitle h1{font-size:1.35rem;font-weight:800;}
+.dtitle p{font-size:.8rem;color:var(--muted);margin-top:2px;}
+.dtabs{display:flex;gap:7px;padding:0 28px;margin-bottom:24px;flex-wrap:wrap;}
+.dtab{padding:7px 20px;border-radius:8px;border:1px solid var(--border);cursor:pointer;font-size:.83rem;font-weight:600;color:var(--muted);background:var(--surface);transition:all .2s;}
+.db{padding:0 28px 44px;}
+.dcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:22px;}
+.dcard{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;}
+.dcard .dcl{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:7px;}
+.dcard .dcv{font-size:1.2rem;font-weight:800;}
+.dcard .dcs{font-size:.72rem;color:var(--muted);margin-top:3px;}
+.dgrid{display:grid;grid-template-columns:1.1fr 1fr;gap:18px;margin-bottom:18px;}
+@media(max-width:760px){.dgrid{grid-template-columns:1fr;}}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;}
+.panel h3{font-size:.88rem;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:6px;}
+.pi{width:24px;height:24px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:.8rem;background:var(--surface2);}
+.cat-row{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:8px;cursor:pointer;transition:background .15s;}
+.cat-row:hover{background:var(--surface2);}
+.cat-row .ci{font-size:.95rem;width:22px;text-align:center;}
+.cat-row .cn{flex:1;font-size:.83rem;}
+.bw{width:70px;}.bb{height:5px;border-radius:3px;background:var(--surface2);overflow:hidden;}.bf{height:100%;border-radius:3px;}
+.cat-row .cp{font-size:.7rem;color:var(--muted);width:30px;text-align:right;}
+.cat-row .ca{font-size:.83rem;font-weight:700;white-space:nowrap;}
+.cat-row .carr{font-size:.75rem;color:var(--muted);opacity:.5;}
+
+/* ── MOVIMIENTOS ── */
+#movimientos{padding:0;}
+.mv-hero{padding:28px 28px 20px;border-bottom:1px solid var(--border);}
+.mv-breadcrumb{display:flex;align-items:center;gap:6px;font-size:.75rem;color:var(--muted);margin-bottom:14px;}
+.mv-breadcrumb span{cursor:pointer;transition:color .15s;}.mv-breadcrumb span:hover{color:var(--text);}
+.mv-breadcrumb .sep{opacity:.4;}
+.mv-title{display:flex;align-items:center;gap:10px;}
+.mv-title .mv-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;}
+.mv-title h1{font-size:1.2rem;font-weight:800;}
+.mv-title p{font-size:.75rem;color:var(--muted);margin-top:2px;}
+.mv-body{padding:20px 28px 48px;}
+.mv-summary{display:flex;gap:14px;margin-bottom:20px;flex-wrap:wrap;}
+.mv-kpi{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 18px;flex:1;min-width:130px;}
+.mv-kpi .kl{font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;}
+.mv-kpi .kv{font-size:1.1rem;font-weight:800;}
+.mv-search{display:flex;gap:10px;margin-bottom:16px;}
+.mv-search input{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:9px 14px;color:var(--text);font-size:.85rem;outline:none;transition:border-color .2s;}
+.mv-search input:focus{border-color:#6366f1;}
+.mv-search input::placeholder{color:var(--muted);}
+.mv-mtabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;}
+.mv-mtab{padding:6px 16px;border-radius:7px;border:1px solid var(--border);background:var(--surface);font-size:.8rem;font-weight:600;color:var(--muted);cursor:pointer;transition:all .15s;}
+.mv-mtab.active{color:#fff;border-color:transparent;}
+.tx-list{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.tx-head{display:grid;grid-template-columns:2fr 1fr 1fr;padding:10px 16px;background:var(--surface2);font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;}
+.tx-head .th-r{text-align:right;}
+.tx-row{display:grid;grid-template-columns:2fr 1fr 1fr;padding:13px 16px;border-bottom:1px solid var(--border);align-items:center;transition:background .12s;}
+.tx-row:last-child{border-bottom:none;}
+.tx-row:hover{background:var(--surface2);}
+.tx-desc{display:flex;align-items:center;gap:10px;}
+.tx-ico{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:.9rem;background:var(--surface2);flex-shrink:0;}
+.tx-nm{font-size:.83rem;font-weight:600;}
+.tx-dt{font-size:.7rem;color:var(--muted);margin-top:1px;}
+.tx-fecha{font-size:.8rem;color:var(--muted);}
+.tx-monto{font-size:.9rem;font-weight:700;text-align:right;}
+.tx-monto.neg{color:#34d399;}
+.no-results{padding:32px;text-align:center;color:var(--muted);font-size:.85rem;}
+
+/* ── ABONOS VIEW ── */
+#abonos{padding:0;}
+.ab-hero{padding:28px 28px 20px;border-bottom:1px solid var(--border);}
+.ab-title{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.ab-icon{width:50px;height:50px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.6rem;background:linear-gradient(135deg,rgba(34,197,94,.2),rgba(22,163,74,.2));}
+.ab-title h1{font-size:1.35rem;font-weight:800;color:#4ade80;}
+.ab-title p{font-size:.8rem;color:var(--muted);margin-top:2px;}
+.ab-body{padding:20px 28px 48px;}
+.ab-summary{display:flex;gap:14px;margin-bottom:22px;flex-wrap:wrap;}
+.ab-kpi{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 20px;flex:1;min-width:140px;}
+.ab-kpi .kl{font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;}
+.ab-kpi .kv{font-size:1.15rem;font-weight:800;}
+.ab-kpi .kv.pos{color:#4ade80;}
+.ab-kpi .kv.neg{color:#f87171;}
+.ab-vs{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:22px;}
+.ab-vs h3{font-size:.88rem;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:6px;}
+.vs-row{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
+.vs-row:last-child{margin-bottom:0;}
+.vs-label{font-size:.78rem;color:var(--muted);width:90px;flex-shrink:0;}
+.vs-bar-track{flex:1;height:10px;background:var(--surface2);border-radius:5px;overflow:hidden;}
+.vs-bar-fill{height:100%;border-radius:5px;transition:width .5s;}
+.vs-val{font-size:.8rem;font-weight:700;white-space:nowrap;min-width:80px;text-align:right;}
+
+/* abono tx rows - green accent */
+.abtx-list{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.abtx-head{display:grid;grid-template-columns:1fr 1fr 1fr;padding:10px 16px;background:var(--surface2);font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;}
+.abtx-head .th-r{text-align:right;}
+.abtx-row{display:grid;grid-template-columns:1fr 1fr 1fr;padding:13px 16px;border-bottom:1px solid var(--border);align-items:center;transition:background .12s;}
+.abtx-row:last-child{border-bottom:none;}
+.abtx-row:hover{background:var(--surface2);}
+.abtx-ico{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:.9rem;background:rgba(34,197,94,.1);color:#4ade80;flex-shrink:0;}
+.abtx-desc{display:flex;align-items:center;gap:10px;}
+.abtx-nm{font-size:.83rem;font-weight:600;}
+.abtx-fecha{font-size:.8rem;color:var(--muted);}
+.abtx-monto{font-size:.9rem;font-weight:700;color:#4ade80;text-align:right;}
+.ab-mtabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;}
+.ab-mtab{padding:6px 16px;border-radius:7px;border:1px solid var(--border);background:var(--surface);font-size:.8rem;font-weight:600;color:var(--muted);cursor:pointer;transition:all .15s;}
+.ab-mtab.active{background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;border-color:transparent;}
+
+/* ── MODAL ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .2s;}
+.overlay.open{opacity:1;pointer-events:all;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:26px;max-width:640px;width:100%;max-height:82vh;overflow-y:auto;transform:translateY(16px);transition:transform .2s;}
+.overlay.open .modal{transform:translateY(0);}
+.modal h2{font-size:1.05rem;font-weight:700;margin-bottom:5px;}
+.modal p{font-size:.8rem;color:var(--muted);margin-bottom:20px;}
+.modal-close{float:right;background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;line-height:1;}
+.ecrow{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);}
+.ecrow:last-child{border-bottom:none;}
+.ecrow .ecn{flex:1;font-size:.83rem;}
+.ecbtns{display:flex;gap:5px;}
+.ecb{padding:4px 11px;border-radius:7px;border:1px solid var(--border);background:var(--surface2);font-size:.72rem;cursor:pointer;color:var(--muted);transition:all .14s;}
+.ecb:hover{color:var(--text);}
+.ecb.sc{background:rgba(245,158,11,.2);border-color:#f59e0b;color:#fbbf24;}
+.ecb.se{background:rgba(99,102,241,.2);border-color:#6366f1;color:#818cf8;}
+.ecb.sp{background:rgba(16,185,129,.2);border-color:#10b981;color:#34d399;}
+.save-btn{margin-top:18px;width:100%;padding:11px;border-radius:9px;border:none;background:linear-gradient(135deg,#6366f1,#06b6d4);color:#fff;font-weight:700;font-size:.88rem;cursor:pointer;}
+
+/* detalle al pinchar una barra */
+#d-bardetail{margin-top:14px}
+.bd-box{background:var(--card2,#12151f);border:1px solid #272d45;border-radius:10px;overflow:hidden;animation:bdIn .18s ease}
+@keyframes bdIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+.bd-head{display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid #272d45;flex-wrap:wrap}
+.bd-ico{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex:0 0 auto}
+.bd-ttl{font-weight:600;font-size:.86rem;color:var(--text,#eaecf4)}
+.bd-sub{font-size:.72rem;color:var(--muted,#6b7194)}
+.bd-tot{margin-left:auto;text-align:right}
+.bd-tot b{display:block;font-size:.95rem;color:var(--text,#eaecf4)}
+.bd-x{cursor:pointer;color:var(--muted,#6b7194);font-size:1.1rem;line-height:1;padding:2px 6px;border-radius:6px;flex:0 0 auto}
+.bd-x:hover{background:#272d45;color:#eaecf4}
+.bd-list{max-height:320px;overflow-y:auto}
+.bd-row{display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;padding:8px 14px;border-bottom:1px solid #1e2334;font-size:.8rem}
+.bd-row:last-child{border-bottom:none}
+.bd-row:hover{background:#1a1e2e}
+.bd-nm{color:var(--text,#eaecf4);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bd-f{color:var(--muted,#6b7194);font-size:.74rem;font-variant-numeric:tabular-nums}
+.bd-m{font-weight:600;font-variant-numeric:tabular-nums;min-width:92px;text-align:right;color:var(--text,#eaecf4)}
+.bd-m.neg{color:#34d399}
+.bd-empty{padding:18px 14px;text-align:center;color:var(--muted,#6b7194);font-size:.8rem}
+.bd-warn{padding:9px 14px;background:#3a2f1180;border-bottom:1px solid #272d45;color:#fcd34d;font-size:.73rem;line-height:1.45}
+.cat-row .cavg{font-size:.74rem;font-weight:600;color:#f87171;white-space:nowrap;min-width:66px;text-align:right;opacity:.85}
+@media(max-width:720px){.cat-row .cavg{display:none}}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════ LANDING ═══════════════════ -->
+<div id="landing" class="view active">
+  <div class="lh">
+    <h1>💳 Gastos CMR Falabella</h1>
+    <p>Finanzas personales · Tarjeta de crédito</p>
+    <span class="per">📅 Dic 2025–Sep 2026</span>
+  </div>
+  <div class="mmtabs">
+    <button class="mmtab"        onclick="setLM('dic',this)">Dic 2025</button>
+    <button class="mmtab"        onclick="setLM('ene',this)">Ene 2026</button>
+    <button class="mmtab"        onclick="setLM('feb',this)">Feb 2026</button>
+    <button class="mmtab"        onclick="setLM('mar',this)">Mar 2026</button>
+    <button class="mmtab"        onclick="setLM('abr',this)">Abr 2026</button>
+    <button class="mmtab"        onclick="setLM('mayo',this)">May 2026</button>
+    <button class="mmtab active" onclick="setLM('junio',this)">Jun 2026</button>
+    <button class="mmtab"        onclick="setLM('julio',this)">Jul 2026</button>
+    <button class="mmtab"        onclick="setLM('ago',this)">Ago 2026</button>
+    <button class="mmtab"        onclick="setLM('sep',this)">Sep 2026</button>
+    <button class="mmtab"        onclick="setLM('ambos',this)">Todo</button>
+  </div>
+  <div class="strip">
+    <div class="si"><div class="sl">Gastos</div><div class="sv" id="s-total" style="color:#f87171">—</div></div>
+    <div class="si"><div class="sl">Abonado</div><div class="sv" id="s-abon" style="color:#4ade80">—</div></div>
+    <div class="si"><div class="sl">🏠 Casa</div><div class="sv" id="s-casa" style="color:#fbbf24">—</div></div>
+    <div class="si"><div class="sl">💼 Empresa</div><div class="sv" id="s-emp" style="color:#818cf8">—</div></div>
+    <div class="si"><div class="sl">👤 Personal</div><div class="sv" id="s-pers" style="color:#34d399">—</div></div>
+  </div>
+  <!-- balance bar -->
+  <div class="balance-bar" id="balance-bar">
+    <span class="bal-label">Gastos</span>
+    <div class="bal-track" style="position:relative;height:10px;">
+      <div class="bal-fill-g" id="bal-g" style="width:0%;background:linear-gradient(90deg,#ef4444,#f59e0b);height:100%;position:absolute;left:0;top:0;border-radius:4px;transition:width .5s;"></div>
+    </div>
+    <span class="bal-label">Abonado</span>
+    <div class="bal-track" style="position:relative;height:10px;">
+      <div class="bal-fill-a" id="bal-a" style="width:0%;background:linear-gradient(90deg,#22c55e,#16a34a);height:100%;position:absolute;left:0;top:0;border-radius:4px;transition:width .5s;opacity:.9;"></div>
+    </div>
+    <span class="bal-val" id="bal-net">—</span>
+  </div>
+  <div class="gcards">
+    <div class="gc c" onclick="openGroup('casa')">
+      <div class="gi">🏠</div><h2>Gastos Casa</h2>
+      <div class="gsub">Hogar, alimentación y servicios</div>
+      <div class="gt" id="gc-casa">—</div>
+      <div class="chips" id="ch-casa"></div>
+      <div class="arr">→</div>
+    </div>
+    <div class="gc e" onclick="openGroup('emp')">
+      <div class="gi">💼</div><h2>Empresa</h2>
+      <div class="gsub">Importaciones, publicidad y logística</div>
+      <div class="gt" id="gc-emp">—</div>
+      <div class="chips" id="ch-emp"></div>
+      <div class="arr">→</div>
+    </div>
+    <div class="gc p" onclick="openGroup('pers')">
+      <div class="gi">👤</div><h2>Personal</h2>
+      <div class="gsub">Retail, entretenimiento y deudas</div>
+      <div class="gt" id="gc-pers">—</div>
+      <div class="chips" id="ch-pers"></div>
+      <div class="arr">→</div>
+    </div>
+  </div>
+  <!-- Abonos card -->
+  <div class="abocard" onclick="openAbonos()">
+    <div class="abi">💚</div>
+    <div class="abt">
+      <h2>Abonos / Pagos a la Tarjeta</h2>
+      <div class="absub" id="ab-card-sub">Pagos realizados al estado de cuenta</div>
+    </div>
+    <div class="abotot">
+      <div class="abtv" id="ab-card-total">—</div>
+      <div class="abn" id="ab-card-n">— pagos</div>
+    </div>
+    <div class="arr">→</div>
+  </div>
+  <button class="edit-btn" onclick="openModal()">✏️ Reasignar categorías entre grupos</button>
+</div>
+
+<!-- ═══════════════════ DETAIL ═══════════════════ -->
+<div id="detail" class="view">
+  <div class="dh">
+    <button class="back" onclick="goHome()">← Inicio</button>
+    <div class="dtitle">
+      <div class="dbi" id="d-bi">💼</div>
+      <div><h1 id="d-title" style="color:#818cf8">Empresa</h1><p id="d-sub">—</p></div>
+    </div>
+  </div>
+  <div class="dtabs">
+    <button class="dtab" id="dt-dic"   onclick="setDM('dic')">Dic 2025</button>
+    <button class="dtab" id="dt-ene"   onclick="setDM('ene')">Ene 2026</button>
+    <button class="dtab" id="dt-feb"   onclick="setDM('feb')">Feb 2026</button>
+    <button class="dtab" id="dt-mar"   onclick="setDM('mar')">Mar 2026</button>
+    <button class="dtab" id="dt-abr"   onclick="setDM('abr')">Abr 2026</button>
+    <button class="dtab" id="dt-mayo"  onclick="setDM('mayo')">May 2026</button>
+    <button class="dtab" id="dt-junio" onclick="setDM('junio')">Jun 2026</button>
+    <button class="dtab" id="dt-julio" onclick="setDM('julio')">Jul 2026</button>
+    <button class="dtab" id="dt-ago" onclick="setDM('ago')">Ago 2026</button>
+    <button class="dtab" id="dt-sep" onclick="setDM('sep')">Sep 2026</button>
+    <button class="dtab active" id="dt-ambos" onclick="setDM('ambos')">Todo</button>
+  </div>
+  <div class="db">
+    <div class="dcards">
+      <div class="dcard"><div class="dcl">Total Período</div><div class="dcv" id="d-tot">—</div><div class="dcs" id="d-tot-s">—</div></div>
+      <div class="dcard"><div class="dcl">Mayor Categoría</div><div class="dcv" id="d-top">—</div><div class="dcs" id="d-top-a">—</div></div>
+      <div class="dcard"><div class="dcl">N° Categorías</div><div class="dcv" id="d-nc">—</div><div class="dcs">activas en el grupo</div></div>
+      <div class="dcard"><div class="dcl">% del Total</div><div class="dcv" id="d-pct">—</div><div class="dcs" id="d-pct-s">—</div></div>
+    </div>
+    <div class="dgrid">
+      <div class="panel">
+        <h3><span class="pi">🍩</span>Distribución</h3>
+        <div style="height:230px;position:relative"><canvas id="d-pie"></canvas></div>
+      </div>
+      <div class="panel">
+        <h3><span class="pi">📋</span>Categorías <span style="color:var(--muted);font-size:.72rem;font-weight:400">— clic para ver movimientos · <span style="color:#f87171">⌀</span> = promedio mensual <span id="d-avgn"></span></span></h3>
+        <div id="d-catlist"></div>
+      </div>
+    </div>
+    <div class="panel">
+      <h3><span class="pi">📊</span>Comparativa por Mes <span style="color:var(--muted);font-size:.72rem;font-weight:400">— clic en una barra para ver el detalle · <span style="color:#f87171">- - -</span> promedio mensual (sin el mes en curso)</span></h3>
+      <div style="height:300px;position:relative"><canvas id="d-bar"></canvas></div>
+      <div id="d-bardetail"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ MOVIMIENTOS ═══════════════════ -->
+<div id="movimientos" class="view">
+  <div class="mv-hero">
+    <div class="mv-breadcrumb">
+      <span onclick="goHome()">Inicio</span>
+      <span class="sep">›</span>
+      <span id="mv-bc-grupo" onclick="goDetail()">Grupo</span>
+      <span class="sep">›</span>
+      <span id="mv-bc-cat" style="color:var(--text)">Categoría</span>
+    </div>
+    <div class="mv-title">
+      <div class="mv-icon" id="mv-icon">📦</div>
+      <div><h1 id="mv-title">Importaciones</h1><p id="mv-sub">—</p></div>
+    </div>
+  </div>
+  <div class="mv-body">
+    <div class="mv-summary">
+      <div class="mv-kpi"><div class="kl">Total período</div><div class="kv" id="mv-ktotal">—</div></div>
+      <div class="mv-kpi"><div class="kl">N° movimientos</div><div class="kv" id="mv-kn">—</div></div>
+      <div class="mv-kpi"><div class="kl">Promedio</div><div class="kv" id="mv-kavg">—</div></div>
+      <div class="mv-kpi"><div class="kl">Mayor movimiento</div><div class="kv" id="mv-kmax">—</div></div>
+    </div>
+    <div class="mv-mtabs">
+      <button class="mv-mtab" id="mv-t-dic"   onclick="setMVMonth('dic')">Dic</button>
+      <button class="mv-mtab" id="mv-t-ene"   onclick="setMVMonth('ene')">Ene</button>
+      <button class="mv-mtab" id="mv-t-feb"   onclick="setMVMonth('feb')">Feb</button>
+      <button class="mv-mtab" id="mv-t-mar"   onclick="setMVMonth('mar')">Mar</button>
+      <button class="mv-mtab" id="mv-t-abr"   onclick="setMVMonth('abr')">Abr</button>
+      <button class="mv-mtab" id="mv-t-mayo"  onclick="setMVMonth('mayo')">May</button>
+      <button class="mv-mtab" id="mv-t-junio" onclick="setMVMonth('junio')">Jun</button>
+      <button class="mv-mtab" id="mv-t-julio" onclick="setMVMonth('julio')">Jul</button>
+      <button class="mv-mtab" id="mv-t-ago" onclick="setMVMonth('ago')">Ago</button>
+      <button class="mv-mtab" id="mv-t-sep" onclick="setMVMonth('sep')">Sep</button>
+      <button class="mv-mtab active" id="mv-t-ambos" onclick="setMVMonth('ambos')">Todo</button>
+    </div>
+    <div class="mv-search">
+      <input type="text" id="mv-search" placeholder="🔍  Buscar movimiento…" oninput="renderTxList()">
+    </div>
+    <div class="tx-list">
+      <div class="tx-head"><span>Descripción</span><span>Fecha</span><span class="th-r">Monto</span></div>
+      <div id="mv-rows"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ ABONOS VIEW ═══════════════════ -->
+<div id="abonos" class="view">
+  <div class="ab-hero">
+    <button class="back" onclick="goHome()">← Inicio</button>
+    <div class="ab-title">
+      <div class="ab-icon">💚</div>
+      <div><h1>Abonos / Pagos a la Tarjeta</h1><p>Pagos realizados al estado de cuenta CMR Falabella</p></div>
+    </div>
+  </div>
+  <div class="ab-body">
+    <div class="ab-summary">
+      <div class="ab-kpi"><div class="kl">Total Abonado</div><div class="kv pos" id="ab-ktotal">—</div></div>
+      <div class="ab-kpi"><div class="kl">N° Pagos</div><div class="kv" id="ab-kn">—</div></div>
+      <div class="ab-kpi"><div class="kl">Pago Promedio</div><div class="kv" id="ab-kavg">—</div></div>
+      <div class="ab-kpi"><div class="kl">Mayor Pago</div><div class="kv pos" id="ab-kmax">—</div></div>
+      <div class="ab-kpi"><div class="kl">Total Gastado</div><div class="kv neg" id="ab-kgastos">—</div></div>
+      <div class="ab-kpi"><div class="kl">Balance</div><div class="kv" id="ab-kbal">—</div></div>
+    </div>
+    <div class="ab-vs" id="ab-vs-panel">
+      <h3><span class="pi">⚖️</span>Gastos vs Abonos por mes</h3>
+      <div id="ab-vs-rows"></div>
+    </div>
+    <div class="ab-mtabs">
+      <button class="ab-mtab" id="ab-t-dic"   onclick="setABMonth('dic')">Dic 2025</button>
+      <button class="ab-mtab" id="ab-t-ene"   onclick="setABMonth('ene')">Ene 2026</button>
+      <button class="ab-mtab" id="ab-t-feb"   onclick="setABMonth('feb')">Feb 2026</button>
+      <button class="ab-mtab" id="ab-t-mar"   onclick="setABMonth('mar')">Mar 2026</button>
+      <button class="ab-mtab" id="ab-t-abr"   onclick="setABMonth('abr')">Abr 2026</button>
+      <button class="ab-mtab" id="ab-t-mayo"  onclick="setABMonth('mayo')">May 2026</button>
+      <button class="ab-mtab" id="ab-t-junio" onclick="setABMonth('junio')">Jun 2026</button>
+      <button class="ab-mtab" id="ab-t-julio" onclick="setABMonth('julio')">Jul 2026</button>
+      <button class="ab-mtab" id="ab-t-ago" onclick="setABMonth('ago')">Ago 2026</button>
+      <button class="ab-mtab" id="ab-t-sep" onclick="setABMonth('sep')">Sep 2026</button>
+      <button class="ab-mtab active" id="ab-t-ambos" onclick="setABMonth('ambos')">Todo</button>
+    </div>
+    <div class="abtx-list">
+      <div class="abtx-head"><span>Descripción</span><span>Fecha</span><span class="th-r">Monto Abonado</span></div>
+      <div id="ab-rows"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ MODAL ═══════════════════ -->
+<div class="overlay" id="modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">×</button>
+    <h2>✏️ Reasignar Categorías</h2>
+    <p>Elige el grupo para cada categoría. Los totales se actualizan en tiempo real.</p>
+    <div id="modal-rows"></div>
+    <button class="save-btn" onclick="closeModal()">✓ Guardar cambios</button>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════
+//  CATEGORÍAS  (cuotas → emp)
+// ════════════════════════════════════════════════
+// Claves = mes calendario real de los cargos (no período de facturación)
+// dic=Dic2025, ene=Ene2026 … julio=Jul2026 (parcial: 01–04/07)
+const CATS = [
+  { key:'importaciones', label:'Alibaba / Proveedores', icon:'📦', dic:18451300, ene:13421018, feb: 4552385, mar:11090916, abr: 6357958, mayo:16414881, junio: 7088761, julio: 8406051, ago: 5652021, sep:  846278, grupo:'emp' },
+  { key:'aliexpress', label:'AliExpress', icon:'🌐', dic: 1038700, ene:  238982, feb:  247615, mar:  709084, abr:  295557, mayo: 1785741, junio: 1080958, julio: 1139362, ago:  314783, sep:  270587, grupo:'emp' },
+  { key:'cuotas', label:'Cuotas / Reestructuración', icon:'💳', dic: 1829815, ene: 2327671, feb: 2328507, mar: 2328508, abr: 2327671, mayo: 2327675, junio: 1747264, julio: 1747270, ago:  991956, sep:       0, grupo:'emp' },
+  { key:'publicidad', label:'Publicidad Digital', icon:'📣', dic: 2100000, ene: 1900000, feb: 1900000, mar: 1665379, abr: 1174565, mayo: 1842189, junio: 3106193, julio: 4314613, ago: 2791948, sep:  360000, grupo:'emp' },
+  { key:'courier', label:'Courier / Envíos', icon:'🚚', dic:  351096, ene:  350000, feb:  300000, mar:  350000, abr:  156400, mayo:  361347, junio:  178173, julio:  352200, ago:  277880, sep:    9120, grupo:'emp' },
+  { key:'retail', label:'Retail / Tiendas', icon:'🛍️', dic:  439970, ene:  100000, feb:   80000, mar:  231172, abr:  102910, mayo:  685053, junio:  191660, julio:   78459, ago:     616, sep:    4000, grupo:'pers' },
+  { key:'gobimpuestos', label:'Gobierno / Impuestos', icon:'🏛️', dic: 1667933, ene:   66642, feb:       0, mar:       0, abr:       0, mayo: 1788066, junio:  179815, julio:  578266, ago:   32769, sep:       0, grupo:'emp' },
+  { key:'compras_empresa', label:'Compras Empresa', icon:'🏢', dic:  566666, ene:  566666, feb:  566666, mar: 1102751, abr:  566666, mayo: 1590570, junio:  668065, julio:  914459, ago: 1050114, sep:       0, grupo:'emp' },
+  { key:'prov_local', label:'Proveedor Local', icon:'🏪', dic:   39448, ene:       0, feb:       0, mar:   84000, abr:  143525, mayo:       0, junio:       0, julio:       0, ago:  275454, sep:       0, grupo:'emp' },
+  { key:'telecom', label:'Telefonía', icon:'📡', dic:   28990, ene:   57980, feb:    6370, mar:       0, abr:       0, mayo:   28600, junio:   31242, julio:   62136, ago:   64343, sep:       0, grupo:'emp' },
+  { key:'onlineshopping', label:'Online Shopping', icon:'🛒', dic:  513257, ene:  253138, feb:  200000, mar:  791134, abr:  556756, mayo:  567599, junio:  368849, julio:  105655, ago:       0, sep:       0, grupo:'emp' },
+  { key:'digital', label:'Digital / Suscripc.', icon:'💻', dic:  106150, ene:  163366, feb:  179140, mar:  300306, abr:  373280, mayo:  183446, junio:  142124, julio:  197175, ago:  283626, sep:   59318, grupo:'pers' },
+  { key:'supermercado', label:'Supermercado', icon:'🥦', dic:  299331, ene:  344738, feb:  262680, mar:  314209, abr:  245178, mayo:  417047, junio:  382367, julio:  607595, ago:  262688, sep:   12990, grupo:'casa' },
+  { key:'restaurantes', label:'Restaurantes / Cafés', icon:'🍽️', dic:  409990, ene:  311686, feb:   44800, mar:   22530, abr:  135175, mayo:  117346, junio:   33550, julio:   72140, ago:   59326, sep:       0, grupo:'casa' },
+  { key:'combustible', label:'Combustible', icon:'⛽', dic:  185630, ene:  207818, feb:   91182, mar:   51129, abr:  246316, mayo:  131256, junio:  220026, julio:  132563, ago:  161901, sep:       0, grupo:'pers' },
+  { key:'snack', label:'Snack', icon:'☕', dic:    8500, ene:    7840, feb:    4920, mar:    6648, abr:    7200, mayo:   21550, junio:   28230, julio:   37400, ago:    9500, sep:    2550, grupo:'pers' },
+  { key:'salud_pers', label:'Salud', icon:'🩺', dic:  208178, ene:  215212, feb:  215726, mar:       0, abr:  192197, mayo:       0, junio:       0, julio:       0, ago:       0, sep:       0, grupo:'pers' },
+  { key:'seguros', label:'Seguros', icon:'🛡️', dic:   25087, ene:   51519, feb:   58039, mar:  274279, abr:   50253, mayo:   61932, junio:   50365, julio:   51276, ago:   51301, sep:     858, grupo:'casa' },
+  { key:'carniceria', label:'Carnicería', icon:'🥩', dic:   23700, ene:   19560, feb:       0, mar:   15710, abr:   32200, mayo:  147110, junio:   68840, julio:   44000, ago:       0, sep:       0, grupo:'casa' },
+  { key:'mascotas', label:'Mascotas', icon:'🐾', dic:   52480, ene:   65980, feb:       0, mar:   95000, abr:   32990, mayo:       0, junio:  134817, julio:  293490, ago:       0, sep:       0, grupo:'casa' },
+  { key:'tiendas_hogar', label:'Tiendas Hogar', icon:'🏡', dic:   62590, ene:  204990, feb:       0, mar:       0, abr:       0, mayo:  231000, junio:       0, julio:   49609, ago:   58126, sep:       0, grupo:'casa' },
+  { key:'salud', label:'Salud / Farmacia', icon:'💊', dic:   21988, ene:  210465, feb:       0, mar:  101397, abr:   91576, mayo:  156463, junio:  390561, julio:  289577, ago:  190952, sep:   19699, grupo:'casa' },
+  { key:'servicios', label:'Servicios Básicos', icon:'💧', dic:   99990, ene:  113990, feb:   65600, mar:   33010, abr:       0, mayo:   45579, junio:  477822, julio:   13150, ago:  540272, sep:       0, grupo:'casa' },
+  { key:'inet', label:'Inet', icon:'🛜', dic:   33390, ene:   33390, feb:   33390, mar:   33390, abr:   87789, mayo:   62889, junio:   64889, julio:   64889, ago:   64889, sep:       0, grupo:'casa' },
+  { key:'gas', label:'Gas', icon:'🔥', dic:       0, ene:       0, feb:       0, mar:       0, abr:       0, mayo:       0, junio:  199415, julio:       0, ago:       0, sep:       0, grupo:'casa' },
+  { key:'otros', label:'Otros / Servicios', icon:'🔧', dic:   38274, ene:  223444, feb:       0, mar:       0, abr:   22010, mayo:  100000, junio:   85304, julio:   60378, ago:   57740, sep:   20000, grupo:'pers' },
+];
+
+// ════════════════════════════════════════════════
+//  ABONOS (pagos a la tarjeta)
+// ════════════════════════════════════════════════
+const ABONOS = {
+  ene:[
+    {desc:'Pago Tarjeta CMR', fecha:'06/12', monto:2000000},
+    {desc:'Pago Tarjeta CMR', fecha:'07/12', monto:1000000},
+    {desc:'Pago Tarjeta CMR', fecha:'10/12', monto:2000000},
+    {desc:'Pago Tarjeta CMR', fecha:'11/12', monto:400000},
+    {desc:'Pago Tarjeta CMR', fecha:'11/12', monto:1680000},
+    {desc:'Pago Tarjeta CMR', fecha:'12/12', monto:1460000},
+    {desc:'Pago Tarjeta CMR', fecha:'13/12', monto:1500000},
+    {desc:'Pago Tarjeta CMR', fecha:'15/12', monto:321000},
+    {desc:'Pago Tarjeta CMR', fecha:'19/12', monto:2000000},
+    {desc:'Pago Tarjeta CMR', fecha:'20/12', monto:2000000},
+    {desc:'Pago Tarjeta CMR', fecha:'22/12', monto:60000},
+    {desc:'Pago Tarjeta CMR', fecha:'22/12', monto:2000000},
+    {desc:'Pago Tarjeta CMR', fecha:'22/12', monto:1000000},
+    {desc:'Pago Tarjeta CMR', fecha:'23/12', monto:2000000},
+    {desc:'Pago Tarjeta CMR', fecha:'24/12', monto:2300000},
+    {desc:'Pago Tarjeta CMR', fecha:'27/12', monto:500029},
+    {desc:'Pago Tarjeta CMR', fecha:'27/12', monto:2000029},
+    {desc:'Pago Tarjeta CMR', fecha:'28/12', monto:2000000},
+    {desc:'Pago Tarjeta CMR', fecha:'02/01', monto:100000},
+    {desc:'Pago Tarjeta CMR', fecha:'03/01', monto:1000000},
+  ],
+  feb:[
+    {desc:'Pago Tarjeta CMR', fecha:'05/01', monto:2000000},
+    {desc:'Pago Tarjeta CMR', fecha:'07/01', monto:1500000},
+    {desc:'Pago Tarjeta CMR', fecha:'08/01', monto:2000000},
+    {desc:'Pago Tarjeta CMR', fecha:'09/01', monto:800000},
+    {desc:'Pago Tarjeta CMR', fecha:'12/01', monto:1500000},
+    {desc:'Pago Tarjeta CMR', fecha:'14/01', monto:2000000},
+    {desc:'Pago Tarjeta CMR', fecha:'15/01', monto:1000000},
+    {desc:'Pago Tarjeta CMR', fecha:'17/01', monto:1500000},
+    {desc:'Pago Tarjeta CMR', fecha:'19/01', monto:2000000},
+    {desc:'Pago Tarjeta CMR', fecha:'20/01', monto:1500000},
+    {desc:'Pago Tarjeta CMR', fecha:'22/01', monto:1500171},
+    {desc:'Pago Tarjeta CMR', fecha:'25/01', monto:2000000},
+    {desc:'Pago Tarjeta CMR', fecha:'28/01', monto:1500000},
+    {desc:'Pago Tarjeta CMR', fecha:'03/02', monto:1000000},
+  ],
+  mar:[
+    {desc:'Pago Tarjeta CMR', fecha:'05/02', monto:1500000},
+    {desc:'Pago Tarjeta CMR', fecha:'06/02', monto:1000000},
+    {desc:'Pago Tarjeta CMR', fecha:'09/02', monto:1500000},
+    {desc:'Pago Tarjeta CMR', fecha:'12/02', monto:1500000},
+    {desc:'Pago Tarjeta CMR', fecha:'14/02', monto:1160260},
+    {desc:'Pago Tarjeta CMR', fecha:'16/02', monto:1500000},
+    {desc:'Pago Tarjeta CMR', fecha:'18/02', monto:1000000},
+    {desc:'Pago Tarjeta CMR', fecha:'20/02', monto:2000000},
+    {desc:'Pago Tarjeta CMR', fecha:'23/02', monto:1000000},
+    {desc:'Pago Tarjeta CMR', fecha:'25/02', monto:1500000},
+    {desc:'Pago Tarjeta CMR', fecha:'27/02', monto:1000000},
+    {desc:'Pago Tarjeta CMR', fecha:'03/03', monto:1500000},
+  ],
+  abr:[
+    {desc:'Pago Tarjeta CMR', fecha:'05/03', monto:1000000},
+    {desc:'Pago Tarjeta CMR', fecha:'07/03', monto:800000},
+    {desc:'Pago Tarjeta CMR', fecha:'09/03', monto:1000000},
+    {desc:'Pago Tarjeta CMR', fecha:'11/03', monto:1000000},
+    {desc:'Pago Tarjeta CMR', fecha:'13/03', monto:800000},
+    {desc:'Pago Tarjeta CMR', fecha:'16/03', monto:1000000},
+    {desc:'Pago Tarjeta CMR', fecha:'18/03', monto:1000000},
+    {desc:'Pago Tarjeta CMR', fecha:'20/03', monto:800000},
+    {desc:'Pago Tarjeta CMR', fecha:'23/03', monto:1000000},
+    {desc:'Pago Tarjeta CMR', fecha:'25/03', monto:1000000},
+    {desc:'Pago Tarjeta CMR', fecha:'27/03', monto:800000},
+    {desc:'Pago Tarjeta CMR', fecha:'30/03', monto:1000000},
+    {desc:'Pago Tarjeta CMR', fecha:'01/04', monto:800000},
+    {desc:'Pago Tarjeta CMR', fecha:'02/04', monto:1000000},
+    {desc:'Pago Tarjeta CMR', fecha:'03/04', monto:800000},
+    {desc:'Pago Tarjeta CMR', fecha:'04/04', monto:1000000},
+  ],
+  mayo:[
+    {desc:'Pago Tarjeta CMR', fecha:'06/04', monto:500006},
+    {desc:'Pago Tarjeta CMR', fecha:'08/04', monto:700008},
+    {desc:'Pago Tarjeta CMR', fecha:'11/04', monto:900011},
+    {desc:'Pago Tarjeta CMR', fecha:'12/04', monto:1700012},
+    {desc:'Pago Tarjeta CMR', fecha:'12/04', monto:1000012},
+    {desc:'Pago Tarjeta CMR', fecha:'13/04', monto:600013},
+    {desc:'Pago Tarjeta CMR', fecha:'20/04', monto:500020},
+    {desc:'Pago Tarjeta CMR', fecha:'20/04', monto:2500020},
+    {desc:'Pago Tarjeta CMR', fecha:'27/04', monto:600027},
+    {desc:'Pago Tarjeta CMR', fecha:'27/04', monto:1300027},
+    {desc:'Pago Tarjeta CMR', fecha:'29/04', monto:1500029},
+    {desc:'Pago Tarjeta CMR', fecha:'03/05', monto:3000003},
+  ],
+  junio:[
+    {desc:'Pago Tarjeta CMR', fecha:'06/05', monto:200006},
+    {desc:'Pago Tarjeta CMR', fecha:'07/05', monto:2000007},
+    {desc:'Pago Tarjeta CMR', fecha:'08/05', monto:3000008},
+    {desc:'Pago Tarjeta CMR', fecha:'14/05', monto:500014},
+    {desc:'Pago Tarjeta CMR', fecha:'15/05', monto:2500015},
+    {desc:'Pago Tarjeta CMR', fecha:'18/05', monto:1500018},
+    {desc:'Pago Tarjeta CMR', fecha:'19/05', monto:2000019},
+    {desc:'Pago Tarjeta CMR', fecha:'20/05', monto:500020},
+    {desc:'Pago Tarjeta CMR', fecha:'21/05', monto:70000},
+    {desc:'Pago Tarjeta CMR', fecha:'21/05', monto:200000},
+    {desc:'Pago Tarjeta CMR', fecha:'22/05', monto:800022},
+    {desc:'Pago Tarjeta CMR', fecha:'25/05', monto:500025},
+    {desc:'Pago Tarjeta CMR', fecha:'25/05', monto:800025},
+    {desc:'Pago Tarjeta CMR', fecha:'26/05', monto:600026},
+    {desc:'Pago Tarjeta CMR', fecha:'27/05', monto:1400027},
+    {desc:'Pago Tarjeta CMR', fecha:'27/05', monto:100027},
+    {desc:'Pago Tarjeta CMR', fecha:'28/05', monto:2500028},
+    {desc:'Pago Tarjeta CMR', fecha:'29/05', monto:500029},
+    {desc:'Pago Tarjeta CMR', fecha:'31/05', monto:800031},
+    {desc:'Pago Tarjeta CMR', fecha:'02/06', monto:3000002},
+    {desc:'Pago Tarjeta CMR', fecha:'03/06', monto:1300003},
+    {desc:'Pago Tarjeta CMR', fecha:'03/06', monto:400003},
+    {desc:'Pago Tarjeta CMR', fecha:'03/06', monto:200000},
+    {desc:'Pago Tarjeta CMR', fecha:'04/06', monto:700004},
+  ],
+  julio:[
+    {desc:'Pago Tarjeta CMR', fecha:'05/06', monto:1000005},
+    {desc:'Pago Tarjeta CMR', fecha:'06/06', monto:800006},
+    {desc:'Pago Tarjeta CMR', fecha:'06/06', monto:1000006},
+    {desc:'Pago Tarjeta CMR', fecha:'07/06', monto:1000007},
+    {desc:'Pago Tarjeta CMR', fecha:'10/06', monto:1000010},
+    {desc:'Pago Tarjeta CMR', fecha:'12/06', monto:2000012},
+    {desc:'Pago Tarjeta CMR', fecha:'18/06', monto:2000000},
+    {desc:'Pago Tarjeta CMR', fecha:'19/06', monto:1000019},
+    {desc:'Pago Tarjeta CMR', fecha:'21/06', monto:2000021},
+    {desc:'Pago Tarjeta CMR', fecha:'24/06', monto:1800024},
+    {desc:'Pago Tarjeta CMR', fecha:'25/06', monto:1000025},
+    {desc:'Pago Tarjeta CMR', fecha:'28/06', monto:500028},
+    {desc:'Pago Tarjeta CMR', fecha:'29/06', monto:1000029},
+    {desc:'Pago Tarjeta CMR', fecha:'01/07', monto:500001},
+    {desc:'Pago Tarjeta CMR', fecha:'01/07', monto:800001},
+    {desc:'Pago Tarjeta CMR', fecha:'02/07', monto:400002},
+    {desc:'Pago Tarjeta CMR', fecha:'02/07', monto:500002},
+    {desc:'Pago Tarjeta CMR', fecha:'04/07', monto:1000003},
+  ]  ,
+  agosto:[
+    {desc:'Pago Tarjeta CMR', fecha:'06/07', monto:300006},
+    {desc:'Pago Tarjeta CMR', fecha:'07/07', monto:700007},
+    {desc:'Pago Tarjeta CMR', fecha:'08/07', monto:1000008},
+    {desc:'Pago Tarjeta CMR', fecha:'08/07', monto:1000008},
+    {desc:'Pago Tarjeta CMR', fecha:'09/07', monto:1000009},
+    {desc:'Pago Tarjeta CMR', fecha:'12/07', monto:1300012},
+    {desc:'Pago Tarjeta CMR', fecha:'16/07', monto:400016},
+    {desc:'Pago Tarjeta CMR', fecha:'18/07', monto:1000018},
+    {desc:'Pago Tarjeta CMR', fecha:'21/07', monto:1500021},
+    {desc:'Pago Tarjeta CMR', fecha:'21/07', monto:1500021},
+    {desc:'Pago Tarjeta CMR', fecha:'23/07', monto:1500023},
+    {desc:'Pago Tarjeta CMR', fecha:'24/07', monto:650024},
+    {desc:'Pago Tarjeta CMR', fecha:'28/07', monto:1600028},
+    {desc:'Pago Tarjeta CMR', fecha:'28/07', monto:1340028},
+    {desc:'Pago Tarjeta CMR', fecha:'29/07', monto:500029},
+    {desc:'Pago Tarjeta CMR', fecha:'31/07', monto:800031},
+    {desc:'Pago Tarjeta CMR', fecha:'04/08', monto:500004},
+  ]
+  ,
+  sept:[
+    {desc:'Pago Tarjeta CMR', fecha:'05/08', monto:1000005},
+    {desc:'Pago Tarjeta CMR', fecha:'06/08', monto:900006},
+    {desc:'Pago Tarjeta CMR', fecha:'06/08', monto:400006},
+    {desc:'Pago Tarjeta CMR', fecha:'06/08', monto:86006},
+    {desc:'Pago Tarjeta CMR', fecha:'07/08', monto:1000007},
+    {desc:'Pago Tarjeta CMR', fecha:'08/08', monto:300008},
+    {desc:'Pago Tarjeta CMR', fecha:'10/08', monto:170000},
+    {desc:'Pago Tarjeta CMR', fecha:'11/08', monto:578011},
+    {desc:'Pago Tarjeta CMR', fecha:'11/08', monto:360008},
+    {desc:'Pago Tarjeta CMR', fecha:'12/08', monto:260012},
+    {desc:'Pago Tarjeta CMR', fecha:'13/08', monto:200013},
+    {desc:'Pago Tarjeta CMR', fecha:'13/08', monto:130013},
+    {desc:'Pago Tarjeta CMR', fecha:'14/08', monto:400014},
+    {desc:'Pago Tarjeta CMR', fecha:'18/08', monto:800018},
+    {desc:'Pago Tarjeta CMR', fecha:'20/08', monto:500020},
+    {desc:'Pago Tarjeta CMR', fecha:'23/08', monto:2000023},
+    {desc:'Pago Tarjeta CMR', fecha:'24/08', monto:200024},
+    {desc:'Pago Tarjeta CMR', fecha:'25/08', monto:400025},
+    {desc:'Pago Tarjeta CMR', fecha:'26/08', monto:400026},
+    {desc:'Pago Tarjeta CMR', fecha:'29/08', monto:1000029},
+    {desc:'Pago Tarjeta CMR', fecha:'31/08', monto:300031},
+    {desc:'Pago Tarjeta CMR', fecha:'31/08', monto:1000031},
+    {desc:'Pago Tarjeta CMR', fecha:'01/09', monto:400001},
+    {desc:'Pago Tarjeta CMR', fecha:'03/09', monto:190003},
+    {desc:'Pago Tarjeta CMR', fecha:'03/09', monto:400003},
+    {desc:'Pago Tarjeta CMR', fecha:'03/09', monto:340003},
+    {desc:'Pago Tarjeta CMR', fecha:'04/09', monto:300004},
+  ]
+};
+
+// ════════════════════════════════════════════════
+//  MOVIMIENTOS
+// ════════════════════════════════════════════════
+const TX = {
+  importaciones:{
+    ene:[
+      {desc:'Alibaba.com',           fecha:'08/12', monto:1809989},
+      {desc:'Alibaba.com',           fecha:'09/12', monto:1928188},
+      {desc:'Alibaba.com',           fecha:'10/12', monto:1688717},
+      {desc:'Mp *alibaba',           fecha:'22/12', monto:1466277},
+      {desc:'Mp *alibaba',           fecha:'23/12', monto:1601811},
+      {desc:'Mp *alibaba',           fecha:'27/12', monto:2348789},
+      {desc:'Mp *alibaba',           fecha:'29/12', monto:2013265},
+      {desc:'Impuestos DHL',   fecha:'09/12', monto:525013},
+      {desc:'Impuestos DHL',   fecha:'09/12', monto:568076},
+      {desc:'Impuestos DHL',   fecha:'17/12', monto:628035},
+      {desc:'Impuestos DHL',   fecha:'17/12', monto:643506},
+      {desc:'Impuestos DHL',   fecha:'18/12', monto:550650},
+      {desc:'Impuestos DHL',   fecha:'19/12', monto:570301},
+      {desc:'Impuestos DHL',   fecha:'24/12', monto:736596},
+      {desc:'Mp *alipaysingaporeec', fecha:'05/12', monto:81217},
+      {desc:'Mp *alipaysingaporeec', fecha:'07/12', monto:168410},
+      {desc:'Mp *alipaysingaporeec', fecha:'13/12', monto:77841},
+      {desc:'Mp *alipaysingaporeec', fecha:'15/12', monto:91036},
+      {desc:'Mp *alipaysingaporeec', fecha:'21/12', monto:112693},
+      {desc:'Mp *alipaysingaporeec', fecha:'23/12', monto:91391},
+      {desc:'Mp *alipaysingaporeec', fecha:'25/12', monto:277151},
+      {desc:'Mp *alipaysingaporeec', fecha:'28/12', monto:-59738},
+      {desc:'Mp *alipaysingaporeec', fecha:'29/12', monto:65449},
+      {desc:'Mp *alipaysingaporeec', fecha:'30/12', monto:235026},
+      {desc:'Mp *alipaysingaporeec', fecha:'01/01', monto:-95913},
+      {desc:'Shopify',               fecha:'27/12', monto:153282},
+      {desc:'Paypal *drop',          fecha:'12/12', monto:15436},
+      {desc:'Paypal *shop',          fecha:'31/12', monto:160525},
+    ],
+    feb:[
+      {desc:'Alibaba.com',           fecha:'07/01', monto:2094370},
+      {desc:'Alibaba.com',           fecha:'12/01', monto:2245028},
+      {desc:'Alibaba.com',           fecha:'18/01', monto:862256},
+      {desc:'Alibaba.com',           fecha:'22/01', monto:2019169},
+      {desc:'Alibaba.com',           fecha:'28/01', monto:2521025},
+      {desc:'Impuestos DHL',   fecha:'08/01', monto:800229},
+      {desc:'Impuestos DHL',   fecha:'15/01', monto:574845},
+      {desc:'Impuestos DHL',   fecha:'22/01', monto:730416},
+      {desc:'Impuestos DHL',   fecha:'29/01', monto:761758},
+      {desc:'Shopify',               fecha:'16/01', monto:174576},
+      {desc:'Paypal *shop',          fecha:'20/01', monto:139862},
+    ],
+    mar:[
+      {desc:'Alibaba.com',           fecha:'10/02', monto:2160498},
+      {desc:'Impuestos DHL',   fecha:'07/02', monto:840697},
+      {desc:'Impuestos DHL',   fecha:'14/02', monto:254862},
+      {desc:'Impuestos DHL',   fecha:'21/02', monto:641772},
+      {desc:'Shopify',               fecha:'19/02', monto:185000},
+      {desc:'Paypal *shop',          fecha:'25/02', monto:160000},
+    ],
+    abr:[
+      {desc:'Alibaba.com',           fecha:'08/03', monto:2512959},
+      {desc:'Alibaba.com',           fecha:'18/03', monto:2398936},
+      {desc:'Alibaba.com',           fecha:'27/03', monto:2588600},
+      {desc:'Impuestos DHL',   fecha:'12/03', monto:649908},
+      {desc:'Impuestos DHL',   fecha:'24/03', monto:892574},
+      {desc:'Shopify',               fecha:'16/03', monto:154938},
+      {desc:'Shopify',               fecha:'19/03', monto:170909},
+      {desc:'Paypal *shop',          fecha:'28/03', monto:179783},
+      {desc:'Mundo Etiquetas',       fecha:'25/03', monto:147311},
+    ],
+    mayo:[
+      {desc:'Alibaba.com',           fecha:'13/04', monto:1936093},
+      {desc:'Alibaba.com',           fecha:'27/04', monto:2027432},
+      {desc:'Alibaba.com',           fecha:'30/04', monto: 940856},
+      {desc:'Mp *alipaysingaporeec', fecha:'05/04', monto: 123999},
+      {desc:'Mp *alipaysingaporeec', fecha:'14/04', monto:  67592},
+      {desc:'Mp *alipaysingaporeec', fecha:'14/04', monto: 292605},
+      {desc:'Mp *alipaysingaporeec', fecha:'20/04', monto: 263933},
+      {desc:'Mp *alipaysingaporeec', fecha:'24/04', monto: 144585},
+      {desc:'Impuestos DHL',         fecha:'20/04', monto: 595313},
+    ],
+    junio:[
+      {desc:'Alibaba.com',           fecha:'08/05', monto:2350410},
+      {desc:'Alibaba.com',           fecha:'15/05', monto:1740975},
+      {desc:'Alibaba.com',           fecha:'18/05', monto: 813358},
+      {desc:'Alibaba.com',           fecha:'20/05', monto:1809779},
+      {desc:'Alibaba.com',           fecha:'21/05', monto:  16858},
+      {desc:'Alibaba.com',           fecha:'29/05', monto:2597335},
+      {desc:'Alibaba.com',           fecha:'02/06', monto: 286701},
+      {desc:'Alibaba.com',           fecha:'02/06', monto:2729817},
+      {desc:'Mp *alipaysingaporeec', fecha:'04/05', monto: 362717},
+      {desc:'Mp *alipaysingaporeec', fecha:'08/05', monto:  19754},
+      {desc:'Mp *alipaysingaporeec', fecha:'08/05', monto:  18539},
+      {desc:'Mp *alipaysingaporeec', fecha:'09/05', monto:  96829},
+      {desc:'Mp *alipaysingaporeec', fecha:'15/05', monto:  46405},
+      {desc:'Mp *alipaysingaporeec', fecha:'15/05', monto: 271794},
+      {desc:'Mp *alipaysingaporeec', fecha:'22/05', monto: 250034},
+      {desc:'Mp *alipaysingaporeec', fecha:'28/05', monto: 216819},
+      {desc:'Mp *alipaysingaporeec', fecha:'29/05', monto:  45934},
+      {desc:'Mp *alipaysingaporeec', fecha:'01/06', monto:  20589},
+      {desc:'Mp *alipaysingaporeec', fecha:'01/06', monto:  33915},
+      {desc:'Impuestos DHL',         fecha:'12/05', monto: 590843},
+      {desc:'Impuestos DHL',         fecha:'20/05', monto: 272904},
+      {desc:'Impuestos DHL',         fecha:'20/05', monto: 799878},
+      {desc:'Impuestos DHL',         fecha:'28/05', monto: 548873},
+      {desc:'Impuestos DHL',         fecha:'03/06', monto: 249727},
+    ],
+    julio:[
+      {desc:'Alibaba.com',           fecha:'18/06', monto:1337982},
+      {desc:'Alibaba.com',           fecha:'22/06', monto:1693397},
+      {desc:'Alibaba.com',           fecha:'24/06', monto:1247497},
+      {desc:'Mp *alipaysingaporeec', fecha:'04/06', monto:  38821},
+      {desc:'Mp *alipaysingaporeec', fecha:'04/06', monto:  48551},
+      {desc:'Mp *alipaysingaporeec', fecha:'17/06', monto: 461350},
+      {desc:'Mp *alipaysingaporeec', fecha:'24/06', monto: 118631},
+      {desc:'Mp *alipaysingaporeec', fecha:'25/06', monto:  38556},
+      {desc:'Mp *alipaysingaporeec', fecha:'25/06', monto:  35581},
+      {desc:'Mp *alipaysingaporeec', fecha:'26/06', monto:  38556},
+      {desc:'Mp *alipaysingaporeec', fecha:'26/06', monto: 333081},
+      {desc:'Mp *alipaysingaporeec', fecha:'01/07', monto: 248705},
+      {desc:'Mp *alipaysingaporeec', fecha:'02/07', monto: 398069},
+      {desc:'Impuestos DHL',          fecha:'05/06', monto: 537905},
+      {desc:'Impuestos DHL',          fecha:'10/06', monto: 697077},
+      {desc:'Impuestos DHL',     fecha:'15/06', monto: 720082},
+      {desc:'Impuestos DHL',          fecha:'01/07', monto: 525322},
+    ],
+    agosto:[
+      {desc:'Mp *alipaysingaporeec', fecha:'05/07', monto:43319},
+      {desc:'Impuestos DHL', fecha:'06/07', monto:477347},
+      {desc:'Mp *alipaysingaporeec', fecha:'08/07', monto:159223},
+      {desc:'Impuestos DHL', fecha:'08/07', monto:451708},
+      {desc:'Mp *alipaysingaporeec', fecha:'12/07', monto:40341},
+      {desc:'Mp *alipaysingaporeec', fecha:'15/07', monto:-18446},
+      {desc:'Mp *alipaysingaporeec', fecha:'17/07', monto:25713},
+      {desc:'Alibaba.com', fecha:'21/07', monto:1299214},
+      {desc:'Mp *alipaysingaporeec', fecha:'21/07', monto:106028},
+      {desc:'Mp *alipaysingaporeec', fecha:'22/07', monto:97130},
+      {desc:'Mp *alipaysingaporeec', fecha:'22/07', monto:118405},
+      {desc:'Mp *alipaysingaporeec', fecha:'23/07', monto:244273},
+      {desc:'Alibaba.com', fecha:'24/07', monto:1543521},
+      {desc:'Alibaba.com', fecha:'28/07', monto:2574201},
+      {desc:'Mp *alipaysingaporeec', fecha:'29/07', monto:-18683},
+      {desc:'Paypal *shop', fecha:'29/07', monto:90661},
+    ],
+    sept:[
+      {desc:'Dhlclholanda', fecha:'07/08', monto:507229},
+      {desc:'Dhlclholanda', fecha:'07/08', monto:466288},
+      {desc:'Mp *Alipaysingaporeec', fecha:'09/08', monto:45219},
+      {desc:'Grupo Dhl Express C', fecha:'11/08', monto:697580},
+      {desc:'Mp *Alipaysingaporeec', fecha:'13/08', monto:105600},
+      {desc:'Mp *Alipaysingaporeec', fecha:'20/08', monto:177668},
+      {desc:'Mp *Alipaysingaporeec', fecha:'24/08', monto:145879},
+      {desc:'Alibaba.com', fecha:'24/08', monto:1706109},
+      {desc:'Mp *Alipaysingaporeec', fecha:'26/08', monto:17492},
+      {desc:'Mp *Alipaysingaporeec', fecha:'26/08', monto:15943},
+      {desc:'Mp *Alipaysingaporeec', fecha:'26/08', monto:16779},
+      {desc:'Paypal *Shopify', fecha:'28/08', monto:101153},
+      {desc:'Alibaba.com', fecha:'31/08', monto:1649082},
+      {desc:'Mercadopago *Alipaysi', fecha:'03/09', monto:94610},
+      {desc:'Mercadopago *Alipaysi', fecha:'03/09', monto:106916},
+      {desc:'Grupo Dhl Express C', fecha:'03/09', monto:539199},
+      {desc:'Mercadopago *Alipaysi', fecha:'03/09', monto:105553},
+    ]
+  },
+  aliexpress:{
+    ene:[
+      {desc:'Aliexpress',   fecha:'06/12', monto: 58254},
+      {desc:'Aliexpress',   fecha:'07/12', monto: 90666},
+      {desc:'Aliexpress',   fecha:'13/12', monto: 50584},
+      {desc:'Aliexpress',   fecha:'17/12', monto: 29127},
+      {desc:'Aliexpress',   fecha:'18/12', monto: 34153},
+      {desc:'Aliexpress',   fecha:'21/12', monto: 52678},
+      {desc:'Www.aliexpre', fecha:'13/12', monto:124712},
+      {desc:'Www.aliexpre', fecha:'15/12', monto:456863},
+      {desc:'Www.aliexpre', fecha:'23/12', monto: 84424},
+      {desc:'Www.aliexpre', fecha:'24/12', monto: 57239},
+    ],
+    feb:[
+      {desc:'Aliexpress',   fecha:'10/01', monto: 79439},
+      {desc:'Aliexpress',   fecha:'17/01', monto: 79439},
+      {desc:'Aliexpress',   fecha:'23/01', monto: 69258},
+      {desc:'Aliexpress',   fecha:'30/01', monto: 10846},
+    ],
+    mar:[
+      {desc:'Aliexpress',   fecha:'09/02', monto: 21420},
+      {desc:'Aliexpress',   fecha:'14/02', monto: 42365},
+      {desc:'Aliexpress',   fecha:'18/02', monto: 23161},
+      {desc:'Aliexpress',   fecha:'22/02', monto: 84152},
+      {desc:'Aliexpress',   fecha:'27/02', monto: 76517},
+    ],
+    abr:[
+      {desc:'Aliexpress',   fecha:'06/03', monto: 61641},
+      {desc:'Aliexpress',   fecha:'09/03', monto:159661},
+      {desc:'Aliexpress',   fecha:'13/03', monto:108290},
+      {desc:'Aliexpress',   fecha:'17/03', monto: 98770},
+      {desc:'Aliexpress',   fecha:'20/03', monto: 87274},
+      {desc:'Aliexpress',   fecha:'24/03', monto: 83656},
+      {desc:'Aliexpress',   fecha:'27/03', monto: 46720},
+      {desc:'Aliexpress',   fecha:'30/03', monto: 63072},
+      {desc:'Aliexpress',   fecha:'02/04', monto: 68662},
+    ],
+    mayo:[
+      {desc:'Www.aliexpre', fecha:'06/04', monto:  18267},
+      {desc:'Www.aliexpre', fecha:'16/04', monto:  30150},
+      {desc:'Www.aliexpre', fecha:'22/04', monto:  59597},
+      {desc:'Www.aliexpre', fecha:'24/04', monto:  75684},
+      {desc:'Www.aliexpre', fecha:'28/04', monto:  43197},
+      {desc:'Www.aliexpre', fecha:'02/05', monto:  34212},
+    ],
+    junio:[
+      {desc:'Www.aliexpre', fecha:'07/05', monto: 237877},
+      {desc:'Www.aliexpre', fecha:'15/05', monto: 165041},
+      {desc:'Www.aliexpre', fecha:'15/05', monto:  26878},
+      {desc:'Www.aliexpre', fecha:'17/05', monto:  54740},
+      {desc:'Www.aliexpre', fecha:'20/05', monto:   8812},
+      {desc:'Www.aliexpre', fecha:'22/05', monto: 161260},
+      {desc:'Www.aliexpre', fecha:'26/05', monto:  36294},
+      {desc:'Www.aliexpre', fecha:'26/05', monto:  90321},
+      {desc:'Www.aliexpre', fecha:'26/05', monto:  94843},
+      {desc:'Www.aliexpre', fecha:'26/05', monto:  29869},
+      {desc:'Www.aliexpre', fecha:'26/05', monto: 515150},
+      {desc:'Www.aliexpre', fecha:'27/05', monto:  69017},
+      {desc:'Www.aliexpre', fecha:'27/05', monto: 206108},
+      {desc:'Www.aliexpre', fecha:'30/05', monto:  55319},
+      {desc:'Www.aliexpre', fecha:'01/06', monto:  21064},
+      {desc:'Www.aliexpre', fecha:'01/06', monto:  51876},
+      {desc:'Www.aliexpre', fecha:'02/06', monto: 100554},
+      {desc:'Www.aliexpre', fecha:'02/06', monto: 186592},
+      {desc:'Www.aliexpre', fecha:'03/06', monto: 108766},
+      {desc:'Www.aliexpre', fecha:'03/06', monto:  39181},
+    ],
+    julio:[
+      {desc:'Www.aliexpre', fecha:'04/06', monto: 239288},
+      {desc:'Www.aliexpre', fecha:'04/06', monto: -46291},
+      {desc:'Www.aliexpre', fecha:'07/06', monto: 134369},
+      {desc:'Www.aliexpre', fecha:'10/06', monto:  22265},
+      {desc:'Www.aliexpre', fecha:'10/06', monto: 181107},
+      {desc:'Www.aliexpre', fecha:'12/06', monto:  13080},
+      {desc:'Www.aliexpre', fecha:'18/06', monto:  15774},
+      {desc:'Www.aliexpre', fecha:'30/06', monto:  13333},
+      {desc:'Aliexpress',   fecha:'02/07', monto: 170765},
+    ],
+    agosto:[
+      {desc:'Aliexpress', fecha:'03/07', monto:152441},
+      {desc:'Aliexpress', fecha:'08/07', monto:54978},
+      {desc:'Www.aliexpre', fecha:'09/07', monto:37128},
+      {desc:'Www.aliexpre', fecha:'17/07', monto:62714},
+      {desc:'Www.aliexpre', fecha:'17/07', monto:26950},
+      {desc:'Www.aliexpre', fecha:'21/07', monto:196221},
+      {desc:'Www.aliexpre', fecha:'22/07', monto:47404},
+      {desc:'Www.aliexpre', fecha:'22/07', monto:51333},
+      {desc:'Www.aliexpre', fecha:'24/07', monto:77469},
+      {desc:'Www.aliexpre', fecha:'24/07', monto:78898},
+      {desc:'Www.aliexpre', fecha:'24/07', monto:77469},
+      {desc:'Www.aliexpre', fecha:'30/07', monto:105592},
+    ],
+    sept:[
+      {desc:'Www.Aliexpress.Com', fecha:'04/08', monto:90083},
+      {desc:'Www.Aliexpress.Com', fecha:'04/08', monto:89964},
+      {desc:'Www.Aliexpress.Com', fecha:'09/08', monto:43538},
+      {desc:'Www.Aliexpress.Com', fecha:'24/08', monto:72996},
+      {desc:'Www.Aliexpress.Com', fecha:'26/08', monto:18202},
+      {desc:'Www.Aliexpress.Com', fecha:'01/09', monto:134826},
+      {desc:'Www.Aliexpress.Com', fecha:'01/09', monto:82051},
+      {desc:'Www.Aliexpress.Com', fecha:'01/09', monto:33130},
+      {desc:'Www.Aliexpress.Com', fecha:'02/09', monto:20580},
+    ],
+  },
+  publicidad:{
+    ene:[
+      {desc:'Facebk *x82p',fecha:'05/12',monto:60000},{desc:'Facebk *j8w4',fecha:'05/12',monto:60000},
+      {desc:'Facebk *fxcr',fecha:'06/12',monto:60000},{desc:'Facebk *7dhd',fecha:'06/12',monto:60000},
+      {desc:'Facebk *wezg',fecha:'08/12',monto:60000},{desc:'Facebk *2je6',fecha:'09/12',monto:60000},
+      {desc:'Facebk *yzft',fecha:'10/12',monto:60000},{desc:'Facebk *gdct',fecha:'11/12',monto:60000},
+      {desc:'Facebk *wq9h',fecha:'12/12',monto:60000},{desc:'Facebk *ntly',fecha:'12/12',monto:60000},
+      {desc:'Facebk *dlqb',fecha:'13/12',monto:60000},{desc:'Facebk *kw5x',fecha:'13/12',monto:60000},
+      {desc:'Facebk *f7y5',fecha:'14/12',monto:60000},{desc:'Facebk *qhvj',fecha:'15/12',monto:60000},
+      {desc:'Facebk *dxz4',fecha:'15/12',monto:60000},{desc:'Facebk *nyzn',fecha:'16/12',monto:60000},
+      {desc:'Facebk *mh4p',fecha:'17/12',monto:60000},{desc:'Facebk *ggsy',fecha:'18/12',monto:60000},
+      {desc:'Facebk *huc4',fecha:'19/12',monto:60000},{desc:'Facebk *8prm',fecha:'20/12',monto:60000},
+      {desc:'Facebk *wp9v',fecha:'21/12',monto:60000},{desc:'Facebk *wx86',fecha:'22/12',monto:60000},
+      {desc:'Facebk *9u3q',fecha:'23/12',monto:60000},{desc:'Facebk *ez7l',fecha:'24/12',monto:60000},
+      {desc:'Facebk *346g',fecha:'25/12',monto:60000},{desc:'Facebk *hz4f',fecha:'26/12',monto:60000},
+      {desc:'Facebk *w9cs',fecha:'27/12',monto:60000},{desc:'Facebk *3sjy',fecha:'28/12',monto:60000},
+      {desc:'Facebk *9sda',fecha:'29/12',monto:60000},{desc:'Facebk *2axb',fecha:'30/12',monto:60000},
+      {desc:'Facebk *j5vs',fecha:'31/12',monto:60000},{desc:'Facebk *eqyt',fecha:'01/01',monto:60000},
+      {desc:'Facebk *j768',fecha:'02/01',monto:60000},{desc:'Facebk *t5pb',fecha:'03/01',monto:60000},
+      {desc:'Facebk *amjl',fecha:'04/01',monto:60000},
+    ],
+    feb:[
+      {desc:'Facebk *r4nv',fecha:'05/01',monto:60000},{desc:'Facebk *p8ks',fecha:'06/01',monto:60000},
+      {desc:'Facebk *m7yt',fecha:'07/01',monto:60000},{desc:'Facebk *q2wb',fecha:'08/01',monto:60000},
+      {desc:'Facebk *n5cx',fecha:'10/01',monto:60000},{desc:'Facebk *h3gp',fecha:'11/01',monto:60000},
+      {desc:'Facebk *k6dj',fecha:'12/01',monto:60000},{desc:'Facebk *l9zt',fecha:'13/01',monto:71400},
+      {desc:'Facebk *v2rw',fecha:'14/01',monto:71400},{desc:'Facebk *s8fy',fecha:'15/01',monto:71400},
+      {desc:'Facebk *u4xh',fecha:'16/01',monto:71400},{desc:'Facebk *b7mq',fecha:'17/01',monto:71400},
+      {desc:'Facebk *c1pe',fecha:'19/01',monto:71400},{desc:'Facebk *d9na',fecha:'20/01',monto:71400},
+      {desc:'Facebk *e6ks',fecha:'21/01',monto:71400},{desc:'Facebk *f3wr',fecha:'22/01',monto:71400},
+      {desc:'Facebk *g5tm',fecha:'23/01',monto:71400},{desc:'Facebk *h8zp',fecha:'24/01',monto:71400},
+      {desc:'Facebk *i2vq',fecha:'25/01',monto:71400},{desc:'Facebk *j4rb',fecha:'26/01',monto:71400},
+      {desc:'Facebk *k7sc',fecha:'27/01',monto:71400},{desc:'Facebk *l1xd',fecha:'28/01',monto:71400},
+      {desc:'Facebk *m3ye',fecha:'29/01',monto:71400},{desc:'Facebk *n6zf',fecha:'31/01',monto:71400},
+      {desc:'Facebk *o9ag',fecha:'02/02',monto:71400},{desc:'Facebk *p2bh',fecha:'03/02',monto:71400},
+    ],
+    mar:[
+      {desc:'Facebk *q5ci',fecha:'05/02',monto:71400},{desc:'Facebk *r8dj',fecha:'06/02',monto:71400},
+      {desc:'Facebk *s1ek',fecha:'07/02',monto:71400},{desc:'Facebk *t4fl',fecha:'08/02',monto:71400},
+      {desc:'Facebk *u7gm',fecha:'10/02',monto:71400},{desc:'Facebk *v0hn',fecha:'11/02',monto:60000},
+      {desc:'Facebk *w3ip',fecha:'12/02',monto:60000},{desc:'Facebk *x6jq',fecha:'13/02',monto:60000},
+      {desc:'Facebk *y9kr',fecha:'14/02',monto:60000},{desc:'Facebk *z2ls',fecha:'15/02',monto:60000},
+      {desc:'Facebk *a5mt',fecha:'16/02',monto:60000},{desc:'Facebk *b8nu',fecha:'17/02',monto:60000},
+      {desc:'Facebk *c1ov',fecha:'19/02',monto:60000},{desc:'Facebk *d4pw',fecha:'20/02',monto:60000},
+      {desc:'Facebk *e7qx',fecha:'21/02',monto:60000},{desc:'Facebk *f0ry',fecha:'22/02',monto:60000},
+      {desc:'Facebk *g3sz',fecha:'23/02',monto:60000},{desc:'Facebk *h6ta',fecha:'24/02',monto:60000},
+      {desc:'Facebk *i9ub',fecha:'25/02',monto:60000},{desc:'Facebk *j2vc',fecha:'26/02',monto:60000},
+      {desc:'Facebk *k5wd',fecha:'27/02',monto:60000},{desc:'Facebk *l8xe',fecha:'28/02',monto:60000},
+      {desc:'Facebk *m1yf',fecha:'01/03',monto:60000},{desc:'Facebk *n4zg',fecha:'02/03',monto:60000},
+      {desc:'Facebk *o7ah',fecha:'03/03',monto:60000},{desc:'Facebk *p0bi',fecha:'04/03',monto:60000},
+    ],
+    abr:[
+      {desc:'Facebk *q3cj',fecha:'05/03',monto:60000},{desc:'Facebk *r6dk',fecha:'06/03',monto:60000},
+      {desc:'Facebk *s9el',fecha:'08/03',monto:60000},{desc:'Facebk *t2fm',fecha:'09/03',monto:60000},
+      {desc:'Facebk *u5gn',fecha:'10/03',monto:60000},{desc:'Facebk *v8ho',fecha:'11/03',monto:60000},
+      {desc:'Facebk *w1ip',fecha:'12/03',monto:60000},{desc:'Facebk *x4jq',fecha:'14/03',monto:60000},
+      {desc:'Facebk *y7kr',fecha:'15/03',monto:60000},{desc:'Facebk *z0ls',fecha:'16/03',monto:60000},
+      {desc:'Facebk *a3mt',fecha:'17/03',monto:60000},{desc:'Facebk *b6nu',fecha:'18/03',monto:60000},
+      {desc:'Facebk *c9ov',fecha:'19/03',monto:60000},{desc:'Facebk *d2pw',fecha:'21/03',monto:60000},
+      {desc:'Facebk *e5qx',fecha:'22/03',monto:60000},
+      {desc:'Google*Ads',            fecha:'06/03',monto:76486},
+      {desc:'Google*Ads',            fecha:'20/03',monto:300000},
+      {desc:'Google*Ads',            fecha:'02/04',monto:88893},
+    ],
+    mayo:[
+      {desc:'Facebk *4j7c',fecha:'05/04',monto:60000},{desc:'Facebk *srq3',fecha:'05/04',monto:60000},
+      {desc:'Facebk *qtru',fecha:'06/04',monto:60000},{desc:'Facebk *tf5k',fecha:'06/04',monto:60000},
+      {desc:'Facebk *gzna',fecha:'10/04',monto:60000},{desc:'Facebk *fprd',fecha:'13/04',monto:60000},
+      {desc:'Facebk *m2tp',fecha:'13/04',monto:17430},{desc:'Facebk *426k',fecha:'13/04',monto:60000},
+      {desc:'Facebk *d8ld',fecha:'13/04',monto:26144},{desc:'Facebk *5fqp',fecha:'13/04',monto:9960},
+      {desc:'Facebk *4age',fecha:'13/04',monto:60000},{desc:'Facebk *wte9',fecha:'13/04',monto:26144},
+      {desc:'Facebk *bumn',fecha:'14/04',monto:60000},{desc:'Facebk *grkl',fecha:'15/04',monto:60000},
+      {desc:'Facebk *dedw',fecha:'15/04',monto:60000},{desc:'Facebk *tt8w',fecha:'16/04',monto:60000},
+      {desc:'Facebk *afds',fecha:'16/04',monto:60000},{desc:'Facebk *k9zy',fecha:'21/04',monto:29507},
+      {desc:'Facebk *u7nt',fecha:'21/04',monto:44259},{desc:'Facebk *r9uf',fecha:'21/04',monto:16861},
+      {desc:'Facebk *a375',fecha:'21/04',monto:44260},{desc:'Facebk *xzag',fecha:'26/04',monto:60000},
+    ],
+    junio:[
+      {desc:'Google*ads69',fecha:'06/05',monto:53643},{desc:'Google*ads69',fecha:'12/05',monto:300000},
+      {desc:'Google *ads6',fecha:'03/06',monto:300000},{desc:'Google*ads69',fecha:'03/06',monto:56341},
+      {desc:'Google Cloud wxxngl',fecha:'12/05',monto:6558},
+      {desc:'Facebk *we67',fecha:'18/05',monto:83218},{desc:'Facebk *qbjz',fecha:'20/05',monto:60000},
+      {desc:'Facebk *8yje',fecha:'21/05',monto:60000},{desc:'Facebk *8qma',fecha:'22/05',monto:30829},
+      {desc:'Facebk *gc6w',fecha:'23/05',monto:60000},{desc:'Facebk *38pw',fecha:'25/05',monto:253469},
+      {desc:'Facebk *vehl',fecha:'27/05',monto:7509},{desc:'Facebk *eey7',fecha:'28/05',monto:19647},
+      {desc:'Facebk *ghy3',fecha:'28/05',monto:78588},{desc:'Facebk *5n4q',fecha:'29/05',monto:60000},
+      {desc:'Facebk *tfza',fecha:'29/05',monto:39294},{desc:'Facebk *762s',fecha:'29/05',monto:60000},
+      {desc:'Facebk *xtqq',fecha:'29/05',monto:19651},{desc:'Facebk *l3fc',fecha:'29/05',monto:60000},
+      {desc:'Facebk *n89x',fecha:'02/06',monto:60000},{desc:'Facebk *yn2c',fecha:'03/06',monto:60000},
+      {desc:'Facebk *uhns',fecha:'04/06',monto:60000},{desc:'Facebk *dvxr',fecha:'04/06',monto:60000},
+    ],
+    julio:[
+      {desc:'Facebk *x29x',fecha:'04/06',monto:60000},{desc:'Facebk *9mxe',fecha:'04/06',monto:60000},
+      {desc:'Facebk *8t9k',fecha:'05/06',monto:60000},{desc:'Facebk *yupx',fecha:'06/06',monto:60000},
+      {desc:'Facebk *8nr8',fecha:'07/06',monto:60000},{desc:'Facebk *4ych',fecha:'08/06',monto:60000},
+      {desc:'Facebk *f6uz',fecha:'09/06',monto:60000},{desc:'Facebk *yk5k',fecha:'09/06',monto:60000},
+      {desc:'Facebk *szhx',fecha:'09/06',monto:60000},{desc:'Facebk *k43g',fecha:'10/06',monto:60000},
+      {desc:'Facebk *nvnv',fecha:'12/06',monto:60000},{desc:'Facebk *bd2m',fecha:'12/06',monto:60000},
+      {desc:'Facebk *4drm',fecha:'13/06',monto:60000},{desc:'Facebk *3ehs',fecha:'14/06',monto:60000},
+      {desc:'Facebk *jk9q',fecha:'14/06',monto:60000},{desc:'Facebk *3egr',fecha:'15/06',monto:60000},
+      {desc:'Facebk *nvgd',fecha:'16/06',monto:60000},{desc:'Facebk *qp6t',fecha:'16/06',monto:60000},
+      {desc:'Facebk *eg22',fecha:'17/06',monto:60000},{desc:'Facebk *eavy',fecha:'17/06',monto:59989},
+      {desc:'Facebk *3jd7',fecha:'19/06',monto:8479}, {desc:'Facebk *q9jw',fecha:'20/06',monto:60000},
+      {desc:'Facebk *gajg',fecha:'20/06',monto:60000},{desc:'Facebk *x8yc',fecha:'20/06',monto:60000},
+      {desc:'Facebk *9cgn',fecha:'21/06',monto:60000},{desc:'Facebk *vnak',fecha:'21/06',monto:60000},
+      {desc:'Facebk *te26',fecha:'22/06',monto:60000},{desc:'Facebk *ntxr',fecha:'22/06',monto:60000},
+      {desc:'Facebk *9wrd',fecha:'22/06',monto:60000},{desc:'Facebk *429y',fecha:'23/06',monto:60000},
+      {desc:'Facebk *mkn8',fecha:'23/06',monto:60000},{desc:'Facebk *lgxs',fecha:'24/06',monto:60000},
+      {desc:'Facebk *55vq',fecha:'24/06',monto:60000},{desc:'Facebk *jls8',fecha:'25/06',monto:60000},
+      {desc:'Facebk *uc4g',fecha:'25/06',monto:60000},{desc:'Facebk *y7bh',fecha:'26/06',monto:60000},
+      {desc:'Facebk *3tqj',fecha:'26/06',monto:60000},{desc:'Facebk *ykrk',fecha:'26/06',monto:60000},
+      {desc:'Facebk *aq7f',fecha:'27/06',monto:60000},{desc:'Facebk *pz9m',fecha:'28/06',monto:60000},
+      {desc:'Facebk *2vu8',fecha:'28/06',monto:60000},{desc:'Facebk *gfhh',fecha:'29/06',monto:19715},
+      {desc:'Facebk *7gv6',fecha:'30/06',monto:60000},{desc:'Facebk *825r',fecha:'30/06',monto:19720},
+      {desc:'Facebk *xpv6',fecha:'30/06',monto:60000},{desc:'Facebk *vf8f',fecha:'30/06',monto:78860},
+      {desc:'Facebk *wr9j',fecha:'30/06',monto:60000},{desc:'Facebk *qxk6',fecha:'30/06',monto:39430},
+      {desc:'Facebk *m3v3',fecha:'30/06',monto:60000},{desc:'Facebk *8gqe',fecha:'01/07',monto:60000},
+      {desc:'Facebk *qc4r',fecha:'01/07',monto:15024},{desc:'Facebk *j42h',fecha:'01/07',monto:7512},
+      {desc:'Facebk *x4mc',fecha:'02/07',monto:210382},{desc:'Facebk *93xf',fecha:'02/07',monto:60000},
+      {desc:'Facebk *xzs6',fecha:'03/07',monto:14441},{desc:'Facebk *wphd',fecha:'03/07',monto:15375},
+      {desc:'Facebk *n7jd',fecha:'03/07',monto:61500},{desc:'Facebk *d7wp',fecha:'04/07',monto:15380},
+      {desc:'Facebk *wrvp',fecha:'04/07',monto:30750},
+      {desc:'Google*ads69',fecha:'25/06',monto:300000},{desc:'Google*ads36',fecha:'01/07',monto:30},
+      {desc:'Google*ads69',fecha:'01/07',monto:53225},{desc:'Dl*Google Ads',fecha:'02/07',monto:10000},
+      {desc:'Dlocal *Google Ads',fecha:'02/07',monto:18510},
+    ],
+    agosto:[
+      {desc:'Facebk *n6j3', fecha:'05/07', monto:19398},
+      {desc:'Facebk *74jy', fecha:'05/07', monto:60000},
+      {desc:'Facebk *9cqp', fecha:'05/07', monto:60000},
+      {desc:'Facebk *ugwe', fecha:'05/07', monto:60000},
+      {desc:'Facebk *hkay', fecha:'05/07', monto:77592},
+      {desc:'Facebk *ercv', fecha:'05/07', monto:38796},
+      {desc:'Facebk *res3', fecha:'05/07', monto:60000},
+      {desc:'Facebk *hgvq', fecha:'05/07', monto:19404},
+      {desc:'Dlocal *google ads', fecha:'06/07', monto:30000},
+      {desc:'Facebk *7ud9', fecha:'06/07', monto:60000},
+      {desc:'Facebk *er24', fecha:'08/07', monto:34206},
+      {desc:'Facebk *z9jv', fecha:'09/07', monto:60000},
+      {desc:'Facebk *fkmj', fecha:'09/07', monto:60000},
+      {desc:'Facebk *39nk', fecha:'09/07', monto:60000},
+      {desc:'Facebk *dp32', fecha:'09/07', monto:60000},
+      {desc:'Facebk *n3le', fecha:'09/07', monto:60000},
+      {desc:'Facebk *bdwn', fecha:'09/07', monto:60000},
+      {desc:'Facebk *kusg', fecha:'10/07', monto:60000},
+      {desc:'Facebk *hx3v', fecha:'10/07', monto:60000},
+      {desc:'Facebk *ngs2', fecha:'10/07', monto:60000},
+      {desc:'Facebk *8c6u', fecha:'10/07', monto:60000},
+      {desc:'Facebk *e7da', fecha:'10/07', monto:60000},
+      {desc:'Google ads', fecha:'11/07', monto:60000},
+      {desc:'Facebk *s6wv', fecha:'11/07', monto:60000},
+      {desc:'Facebk *usw3', fecha:'11/07', monto:60000},
+      {desc:'Facebk *h2aq', fecha:'11/07', monto:60000},
+      {desc:'Facebk *9nuy', fecha:'11/07', monto:60000},
+      {desc:'Facebk *uvmr', fecha:'12/07', monto:30088},
+      {desc:'Facebk *w8tb', fecha:'12/07', monto:7522},
+      {desc:'Facebk *3nmr', fecha:'12/07', monto:15044},
+      {desc:'Facebk *6kp3', fecha:'15/07', monto:60000},
+      {desc:'Facebk *y942', fecha:'15/07', monto:60000},
+      {desc:'Facebk *uwd3', fecha:'15/07', monto:293998},
+      {desc:'Facebk *gkwb', fecha:'15/07', monto:60000},
+      {desc:'Facebk *4y3t', fecha:'16/07', monto:9800},
+      {desc:'Facebk *qcsh', fecha:'17/07', monto:60000},
+      {desc:'Facebk *r7yt', fecha:'17/07', monto:9800},
+      {desc:'Facebk *pckq', fecha:'17/07', monto:39200},
+      {desc:'Facebk *lmgm', fecha:'17/07', monto:60000},
+      {desc:'Facebk *73df', fecha:'17/07', monto:19600},
+      {desc:'Facebk *t4sw', fecha:'18/07', monto:7502},
+      {desc:'Facebk *un4g', fecha:'19/07', monto:6671},
+      {desc:'Facebk *fnmd', fecha:'19/07', monto:6664},
+      {desc:'Facebk *7xmt', fecha:'19/07', monto:13328},
+      {desc:'Facebk *b4nj', fecha:'19/07', monto:60000},
+      {desc:'Facebk *tcbf', fecha:'19/07', monto:26656},
+      {desc:'Facebk *47ay', fecha:'19/07', monto:60000},
+      {desc:'Facebk *wd26', fecha:'20/07', monto:60000},
+      {desc:'Facebk *4mh7', fecha:'20/07', monto:60000},
+      {desc:'Facebk *uah3', fecha:'21/07', monto:60000},
+      {desc:'Facebk *cp7t', fecha:'21/07', monto:60000},
+      {desc:'Facebk *e7zj', fecha:'21/07', monto:60000},
+      {desc:'Facebk *qh3j', fecha:'22/07', monto:60000},
+      {desc:'Facebk *xawq', fecha:'22/07', monto:60000},
+      {desc:'Facebk *r2yn', fecha:'23/07', monto:60000},
+      {desc:'Facebk *v2xm', fecha:'24/07', monto:60000},
+      {desc:'Facebk *22q9', fecha:'25/07', monto:60000},
+      {desc:'Facebk *cmwh', fecha:'26/07', monto:60000},
+      {desc:'Facebk *yxws', fecha:'26/07', monto:60000},
+      {desc:'Facebk *mc6y', fecha:'27/07', monto:60000},
+      {desc:'Facebk *q6m5', fecha:'27/07', monto:60000},
+      {desc:'Facebk *qkpr', fecha:'28/07', monto:60000},
+      {desc:'Facebk *3yjs', fecha:'28/07', monto:60000},
+      {desc:'Facebk *nw9q', fecha:'29/07', monto:7523},
+      {desc:'Facebk *u3qd', fecha:'29/07', monto:89240},
+      {desc:'Facebk *mdnh', fecha:'29/07', monto:60000},
+      {desc:'Facebk *eqyk', fecha:'30/07', monto:60000},
+      {desc:'Facebk *vy8w', fecha:'30/07', monto:60000},
+      {desc:'Facebk *2fcs', fecha:'31/07', monto:60000},
+      {desc:'Facebk *kfbb', fecha:'31/07', monto:15112},
+      {desc:'Facebk *tzab', fecha:'31/07', monto:7556},
+      {desc:'Facebk *juux', fecha:'31/07', monto:37784},
+      {desc:'Google ads', fecha:'01/08', monto:120662},
+      {desc:'Facebk *7ath', fecha:'01/08', monto:60000},
+      {desc:'Facebk *uevf', fecha:'01/08', monto:60000},
+      {desc:'Facebk *yvw2', fecha:'01/08', monto:60000},
+      {desc:'Facebk *mx7f', fecha:'02/08', monto:60000},
+      {desc:'Facebk *l5f6', fecha:'02/08', monto:35068},
+      {desc:'Facebk *8mn4', fecha:'03/08', monto:60000},
+      {desc:'Facebk *ehvx', fecha:'03/08', monto:60000},
+      {desc:'Facebk *zabj', fecha:'04/08', monto:60000},
+    ],
+    sept:[
+      {desc:'Facebk *3Ps8Ayz7U2', fecha:'04/08', monto:60000},
+      {desc:'Facebk *87Fq8Yz7U2', fecha:'04/08', monto:60000},
+      {desc:'Facebk *Fb6Ksy98U2', fecha:'05/08', monto:7535},
+      {desc:'Facebk *A5Y2D2N8U4', fecha:'06/08', monto:7536},
+      {desc:'Facebk *Nh6Ksy98U2', fecha:'06/08', monto:15070},
+      {desc:'Facebk *Xp6Ksy98U2', fecha:'06/08', monto:30140},
+      {desc:'Facebk *Mpqgm2A8U4', fecha:'06/08', monto:60000},
+      {desc:'Facebk *Lwqfezv7U2', fecha:'07/08', monto:23251},
+      {desc:'Facebk *Bgu2Rym8U2', fecha:'08/08', monto:46502},
+      {desc:'Facebk *Sgrfezv7U2', fecha:'08/08', monto:93004},
+      {desc:'Facebk *Levlp228U4', fecha:'11/08', monto:7538},
+      {desc:'Facebk *4Br74Zz7U2', fecha:'11/08', monto:407041},
+      {desc:'Facebk *76Rvyzv7U2', fecha:'12/08', monto:122366},
+      {desc:'Google*Ads3609792248', fecha:'13/08', monto:120083},
+      {desc:'Facebk *4Dla92S7U4', fecha:'14/08', monto:11308},
+      {desc:'Facebk *Ekzj82S7U4', fecha:'14/08', monto:39135},
+      {desc:'Facebk *6K66Yzh8U2', fecha:'14/08', monto:60055},
+      {desc:'Facebk *Gzju3268U4', fecha:'16/08', monto:60000},
+      {desc:'Facebk *3Bd4Qzm8U2', fecha:'16/08', monto:11308},
+      {desc:'Facebk *X9A98268U4', fecha:'17/08', monto:60000},
+      {desc:'Facebk *96Qe32J8U4', fecha:'18/08', monto:60000},
+      {desc:'Facebk *6Lkv72J8U4', fecha:'20/08', monto:60000},
+      {desc:'Facebk *Av47C2W7U4', fecha:'21/08', monto:60000},
+      {desc:'Facebk *8Zu5M268U4', fecha:'21/08', monto:60000},
+      {desc:'Facebk *4Vayd4N8U4', fecha:'22/08', monto:60000},
+      {desc:'Facebk *6Q8Dm2J8U4', fecha:'23/08', monto:7608},
+      {desc:'Facebk *K9Drj2W7U4', fecha:'23/08', monto:15216},
+      {desc:'Facebk *N36Q93E8U4', fecha:'25/08', monto:13502},
+      {desc:'Facebk *5Eetf3S7U4', fecha:'25/08', monto:53988},
+      {desc:'Facebk *5Ksex4A8U4', fecha:'25/08', monto:26994},
+      {desc:'Facebk *Hspes2J8U4', fecha:'25/08', monto:60000},
+      {desc:'Facebk *Y8Wv3368U4', fecha:'25/08', monto:13497},
+      {desc:'Facebk *7Y9Zf3E8U4', fecha:'26/08', monto:60000},
+      {desc:'Facebk *J6Ygl3S7U4', fecha:'26/08', monto:60131},
+      {desc:'Facebk *5Emyy4N8U4', fecha:'27/08', monto:60000},
+      {desc:'Facebk *Ct4Dh368U4', fecha:'28/08', monto:60000},
+      {desc:'Facebk *Dc9F93S8U4', fecha:'29/08', monto:15036},
+      {desc:'Facebk *B29F93S8U4', fecha:'29/08', monto:7518},
+      {desc:'Facebk *78Pze3S8U4', fecha:'30/08', monto:60000},
+      {desc:'Facebk *72Hza5N8U4', fecha:'30/08', monto:10214},
+      {desc:'Facebk *A6Pjq368U4', fecha:'30/08', monto:5107},
+      {desc:'Facebk *Em5Ac3W7U4', fecha:'30/08', monto:5107},
+      {desc:'Facebk *8Cme44S7U4', fecha:'30/08', monto:20428},
+      {desc:'Facebk *2F2Bm3J8U4', fecha:'31/08', monto:60000},
+      {desc:'Facebk *Vtq79528U4', fecha:'01/09', monto:60000},
+      {desc:'Facebk *94Jvl3S8U4', fecha:'01/09', monto:60000},
+      {desc:'Facebk *5Avt6468U4', fecha:'02/09', monto:60000},
+      {desc:'Facebk *Wxjwv5N8U4', fecha:'03/09', monto:60000},
+      {desc:'Facebk *978556A8U4', fecha:'03/09', monto:60000},
+      {desc:'Facebk *Cmkkz3S8U4', fecha:'04/09', monto:60000},
+    ]
+  },
+  courier:{
+    ene:[
+      {desc:'Blue Express SA',fecha:'06/12',monto:16900},{desc:'Blue Express SA',fecha:'09/12',monto:11200},
+      {desc:'Blue Express SA',fecha:'10/12',monto:22600},{desc:'Blue Express SA',fecha:'11/12',monto:17100},
+      {desc:'Blue Express SA',fecha:'12/12',monto:15200},{desc:'Blue Express SA',fecha:'13/12',monto:13800},
+      {desc:'Blue Express SA',fecha:'15/12',monto:39400},{desc:'Blue Express SA',fecha:'16/12',monto:21600},
+      {desc:'Blue Express SA',fecha:'17/12',monto:25000},{desc:'Blue Express SA',fecha:'19/12',monto:34200},
+      {desc:'Blue Express SA',fecha:'21/12',monto:5200},{desc:'Blue Express SA',fecha:'22/12',monto:11700},
+      {desc:'Blue Express SA',fecha:'24/12',monto:6400},{desc:'Blue Express SA',fecha:'26/12',monto:8500},
+      {desc:'Blue Express SA',fecha:'28/12',monto:3800},{desc:'Blue Express SA',fecha:'30/12',monto:3100},
+      {desc:'Blue Express SA',fecha:'01/01',monto:9300},{desc:'Blue Express SA',fecha:'02/01',monto:15200},
+      {desc:'Blue Express SA',fecha:'03/01',monto:3800},
+      {desc:'Providenci Sta Magdalena',fecha:'10/12',monto:9678},
+      {desc:'Providenci Sta Magdalena',fecha:'29/12',monto:8718},
+    ],
+    feb:[
+      {desc:'Blue Express SA',fecha:'07/01',monto:14200},{desc:'Blue Express SA',fecha:'09/01',monto:18500},
+      {desc:'Blue Express SA',fecha:'12/01',monto:22800},{desc:'Blue Express SA',fecha:'14/01',monto:16400},
+      {desc:'Blue Express SA',fecha:'16/01',monto:19100},{desc:'Blue Express SA',fecha:'19/01',monto:12600},
+      {desc:'Blue Express SA',fecha:'21/01',monto:25300},{desc:'Blue Express SA',fecha:'23/01',monto:8900},
+      {desc:'Blue Express SA',fecha:'26/01',monto:17400},{desc:'Blue Express SA',fecha:'28/01',monto:14700},
+      {desc:'Blue Express SA',fecha:'30/01',monto:21900},{desc:'Blue Express SA',fecha:'02/02',monto:9800},
+      {desc:'Blue Express SA',fecha:'04/02',monto:13700},
+    ],
+    mar:[
+      {desc:'Blue Express SA',fecha:'06/02',monto:12300},{desc:'Blue Express SA',fecha:'09/02',monto:19800},
+      {desc:'Blue Express SA',fecha:'11/02',monto:15600},{desc:'Blue Express SA',fecha:'13/02',monto:22100},
+      {desc:'Blue Express SA',fecha:'16/02',monto:18400},{desc:'Blue Express SA',fecha:'18/02',monto:11200},
+      {desc:'Blue Express SA',fecha:'20/02',monto:24700},{desc:'Blue Express SA',fecha:'23/02',monto:8600},
+      {desc:'Blue Express SA',fecha:'25/02',monto:16300},{desc:'Blue Express SA',fecha:'27/02',monto:13900},
+      {desc:'Blue Express SA',fecha:'02/03',monto:21500},{desc:'Blue Express SA',fecha:'04/03',monto:9800},
+    ],
+    abr:[
+      {desc:'Blue Express SA',fecha:'06/03',monto:18700},{desc:'Blue Express SA',fecha:'09/03',monto:24300},
+      {desc:'Blue Express SA',fecha:'11/03',monto:16800},{desc:'Blue Express SA',fecha:'13/03',monto:21500},
+      {desc:'Blue Express SA',fecha:'16/03',monto:12900},{desc:'Blue Express SA',fecha:'18/03',monto:19600},
+      {desc:'Blue Express SA',fecha:'20/03',monto:27400},{desc:'Blue Express SA',fecha:'23/03',monto:14100},
+      {desc:'Blue Express SA',fecha:'25/03',monto:18300},{desc:'Blue Express SA',fecha:'27/03',monto:22600},
+      {desc:'Blue Express SA',fecha:'30/03',monto:15200},{desc:'Blue Express SA',fecha:'01/04',monto:11800},
+      {desc:'Blue Express SA',fecha:'03/04',monto:16700},
+    ],
+    mayo:[
+      {desc:'Blue Express SA',fecha:'06/04',monto:13800},{desc:'Blue Express SA',fecha:'06/04',monto:29200},
+      {desc:'Blue Express SA',fecha:'13/04',monto:21700},{desc:'Blue Express SA',fecha:'14/04',monto:16400},
+      {desc:'Blue Express SA',fecha:'14/04',monto:-16400},{desc:'Blue Express SA',fecha:'16/04',monto:13100},
+      {desc:'Blue Express SA',fecha:'21/04',monto:12800},{desc:'Blue Express SA',fecha:'22/04',monto:3100},
+      {desc:'Blue Express SA',fecha:'23/04',monto:22700},{desc:'Blue Express SA',fecha:'24/04',monto:16400},
+      {desc:'Blue Express SA',fecha:'27/04',monto:16200},{desc:'Blue Express SA',fecha:'29/04',monto:7400},
+    ],
+    junio:[
+      {desc:'Blue Express SA',fecha:'06/05',monto:20700},{desc:'Blue Express SA',fecha:'15/05',monto:8800},
+      {desc:'Blue Express SA',fecha:'25/05',monto:14700},{desc:'Blue Express SA',fecha:'26/05',monto:9500},
+      {desc:'Blue Express SA',fecha:'27/05',monto:9500},{desc:'Blue Express SA',fecha:'29/05',monto:4300},
+      {desc:'Blue Express SA',fecha:'29/05',monto:7400},{desc:'Blue Express SA',fecha:'01/06',monto:10690},
+      {desc:'Blue Express SA',fecha:'01/06',monto:11530},{desc:'Blue Express SA',fecha:'01/06',monto:14500},
+    ],
+    julio:[
+      {desc:'Blue Express SA',fecha:'05/06',monto:10700},{desc:'Blue Express SA',fecha:'05/06',monto:14500},
+      {desc:'Blue Express SA',fecha:'05/06',monto:16900},{desc:'Blue Express SA',fecha:'05/06',monto:20100},
+      {desc:'Blue Express SA',fecha:'05/06',monto:3100}, {desc:'Blue Express SA',fecha:'08/06',monto:19200},
+      {desc:'Blue Express SA',fecha:'08/06',monto:14300},{desc:'Blue Express SA',fecha:'08/06',monto:16600},
+      {desc:'Blue Express SA',fecha:'09/06',monto:14300},{desc:'Blue Express SA',fecha:'09/06',monto:19200},
+      {desc:'Blue Express SA',fecha:'09/06',monto:15700},{desc:'Blue Express SA',fecha:'09/06',monto:5200},
+      {desc:'Blue Express SA',fecha:'10/06',monto:8500}, {desc:'Blue Express SA',fecha:'11/06',monto:9500},
+      {desc:'Blue Express SA',fecha:'12/06',monto:8600}, {desc:'Blue Express SA',fecha:'12/06',monto:4300},
+      {desc:'Blue Express SA',fecha:'15/06',monto:12100},{desc:'Blue Express SA',fecha:'15/06',monto:16900},
+      {desc:'Blue Express SA',fecha:'15/06',monto:7400}, {desc:'Blue Express SA',fecha:'17/06',monto:18100},
+      {desc:'Blue Express SA',fecha:'19/06',monto:15800},{desc:'Blue Express SA',fecha:'19/06',monto:16600},
+      {desc:'Blue Express SA',fecha:'22/06',monto:7800}, {desc:'Blue Express SA',fecha:'22/06',monto:17400},
+      {desc:'Blue Express SA',fecha:'22/06',monto:14200},{desc:'Blue Express SA',fecha:'23/06',monto:5200},
+      {desc:'Blue Express SA',fecha:'23/06',monto:31800},{desc:'Blue Express SA',fecha:'24/06',monto:16900},
+      {desc:'Blue Express SA',fecha:'25/06',monto:15700},{desc:'Blue Express SA',fecha:'30/06',monto:13700},
+      {desc:'Blue Express SA',fecha:'30/06',monto:17600},{desc:'Blue Express SA',fecha:'02/07',monto:3800},
+      {desc:'Blue Express SA',fecha:'02/07',monto:12100},{desc:'Blue Express SA',fecha:'03/07',monto:7400},
+    ],
+    agosto:[
+      {desc:'Blue express sa', fecha:'06/07', monto:31300},
+      {desc:'Blue express sa', fecha:'07/07', monto:3100},
+      {desc:'Blue express sa', fecha:'07/07', monto:17400},
+      {desc:'Blue express sa', fecha:'08/07', monto:7400},
+      {desc:'Blue express sa', fecha:'10/07', monto:15500},
+      {desc:'Blue express sa', fecha:'13/07', monto:20400},
+      {desc:'Blue express sa', fecha:'13/07', monto:11200},
+      {desc:'Blue express sa', fecha:'14/07', monto:12100},
+      {desc:'Blue express sa', fecha:'14/07', monto:3800},
+      {desc:'Blue express sa', fecha:'15/07', monto:3800},
+      {desc:'Blue express sa', fecha:'17/07', monto:13800},
+      {desc:'Blue express sa', fecha:'17/07', monto:9000},
+      {desc:'Blue express sa', fecha:'20/07', monto:50600},
+      {desc:'Blue express sa', fecha:'21/07', monto:3800},
+      {desc:'Blue express sa', fecha:'21/07', monto:21600},
+      {desc:'Blue express sa', fecha:'22/07', monto:10400},
+      {desc:'Blue express sa', fecha:'23/07', monto:4300},
+      {desc:'Blue express sa', fecha:'27/07', monto:18100},
+      {desc:'Blue express sa', fecha:'27/07', monto:12400},
+      {desc:'Blue express sa', fecha:'29/07', monto:27300},
+      {desc:'Blue express sa', fecha:'29/07', monto:8600},
+      {desc:'Blue express sa', fecha:'30/07', monto:6400},
+      {desc:'Blue express sa', fecha:'31/07', monto:11400},
+      {desc:'Blue express sa', fecha:'31/07', monto:5200},
+      {desc:'Blue express sa', fecha:'03/08', monto:15500},
+      {desc:'Blue express sa', fecha:'03/08', monto:12400},
+    ],
+    sept:[
+      {desc:'Blue Express Sa', fecha:'04/08', monto:19300},
+      {desc:'Blue Express Sa', fecha:'05/08', monto:4300},
+      {desc:'Blue Express Sa', fecha:'05/08', monto:10700},
+      {desc:'Blue Express Sa', fecha:'06/08', monto:7800},
+      {desc:'Blue Express Sa', fecha:'10/08', monto:31800},
+      {desc:'Blue Express Sa', fecha:'10/08', monto:5700},
+      {desc:'Blue Express Sa', fecha:'11/08', monto:10700},
+      {desc:'Blue Express Sa', fecha:'12/08', monto:4300},
+      {desc:'Blue Express Sa', fecha:'12/08', monto:16800},
+      {desc:'Blue Express Sa', fecha:'13/08', monto:14300},
+      {desc:'Blue Express Sa', fecha:'17/08', monto:7400},
+      {desc:'Blue Express Sa', fecha:'17/08', monto:2600},
+      {desc:'Blue Express Sa', fecha:'17/08', monto:13000},
+      {desc:'Blue Express Sa', fecha:'18/08', monto:8600},
+      {desc:'Blue Express Sa', fecha:'20/08', monto:3800},
+      {desc:'Blue Express Sa', fecha:'25/08', monto:29500},
+      {desc:'Blue Express Sa', fecha:'25/08', monto:6900},
+      {desc:'Blue Express Sa', fecha:'28/08', monto:3100},
+      {desc:'Blue Express Sa', fecha:'28/08', monto:37100},
+      {desc:'Blue Express Sa', fecha:'31/08', monto:12280},
+      {desc:'Blue Express Sa', fecha:'01/09', monto:6110},
+      {desc:'Blue Express Sa', fecha:'02/09', monto:3010},
+    ]
+  },
+  cuotas:{
+    ene:[
+      {desc:'Reestructuración Línea Compras',fecha:'ago/25',monto:757364},
+      {desc:'Reestructuración Súper Avance', fecha:'ago/25',monto:492044},
+      {desc:'Súper Avance con Seguro',       fecha:'dic/25',monto:580407},
+    ],
+    feb:[
+      {desc:'Reestructuración Línea Compras',fecha:'ago/25',monto:757364},
+      {desc:'Reestructuración Súper Avance', fecha:'ago/25',monto:492044},
+      {desc:'Súper Avance con Seguro',       fecha:'oct/25',monto:497856},
+      {desc:'Súper Avance con Seguro',       fecha:'dic/25',monto:580407},
+    ],
+    mar:[
+      {desc:'Reestructuración Línea Compras',fecha:'ago/25',monto:757364},
+      {desc:'Reestructuración Súper Avance', fecha:'ago/25',monto:492044},
+      {desc:'Súper Avance con Seguro',       fecha:'oct/25',monto:497856},
+      {desc:'Súper Avance con Seguro',       fecha:'dic/25',monto:580407},
+      {desc:'Seg. Desgravamen',              fecha:'02/03',monto:836},
+    ],
+    abr:[
+      {desc:'Reestructuración Línea Compras',fecha:'ago/25',monto:757364},
+      {desc:'Reestructuración Súper Avance', fecha:'ago/25',monto:492044},
+      {desc:'Súper Avance con Seguro',       fecha:'oct/25',monto:497856},
+      {desc:'Súper Avance con Seguro',       fecha:'dic/25',monto:580407},
+      {desc:'Seg. Desgravamen',              fecha:'02/04',monto:837},
+    ],
+    mayo:[
+      {desc:'Reestructuración Línea Compras',fecha:'ago/25',monto:757364},
+      {desc:'Reestructuración Súper Avance', fecha:'ago/25',monto:492044},
+      {desc:'Súper Avance con Seguro',       fecha:'oct/25',monto:497856},
+      {desc:'Súper Avance con Seguro',       fecha:'dic/25',monto:580407},
+    ],
+    junio:[
+      {desc:'Reestructuración Línea Compras',fecha:'ago/25',monto:757364},
+      {desc:'Reestructuración Súper Avance', fecha:'ago/25',monto:492044},
+      {desc:'Súper Avance con Seguro',       fecha:'oct/25',monto:497856},
+      {desc:'Súper Avance con Seguro',       fecha:'dic/25',monto:580411},
+    ],
+    julio:[
+      {desc:'Reestructuración Línea Compras',fecha:'05/06',monto:757364},
+      {desc:'Reestructuración Súper Avance', fecha:'05/06',monto:492044},
+      {desc:'Súper Avance con Seguro',       fecha:'05/06',monto:497856},
+    ],
+    agosto:[
+      {desc:'Reestruc. Línea Compras', fecha:'05/07', monto:757370},
+      {desc:'Reestruc. Súper Avance', fecha:'05/07', monto:492044},
+      {desc:'Súper Avance con Seguro', fecha:'05/07', monto:497856},
+    ],
+    sept:[
+      {desc:'Mercadopago *Mercadol', fecha:'05/08', monto:2056},
+      {desc:'Super Avance Con Seguro Transferencias Electronica', fecha:'05/08', monto:497856},
+      {desc:'Reestructuracion Super Avance', fecha:'05/08', monto:492044},
+    ]
+  },
+  mascotas:{
+    ene:[
+      {desc:'Vet Webpay Plus',   fecha:'15/12', monto:35700},
+      {desc:'Merpago*razas',     fecha:'17/12', monto:16780},
+    ],
+    feb:[
+      {desc:'Punto Mascotas',    fecha:'15/01', monto:65980},
+    ],
+    mar:[],
+    abr:[
+      {desc:'My Pet Pro Premium',fecha:'20/03', monto:95000},
+    ],
+    mayo:[
+      {desc:'Punto Mascotas', fecha:'27/04', monto:32990},
+    ],
+    junio:[],
+    julio:[
+      {desc:'Puntomascotas',              fecha:'06/06', monto:32990},
+      {desc:'Hospital Clínico Veterina',  fecha:'19/06', monto:48909},
+      {desc:'Animal DEA',                 fecha:'16/06', monto:18000},
+      {desc:'Mercadopago *wau',           fecha:'15/06', monto: 4000},
+      {desc:'Paws Vet',                   fecha:'25/06', monto:25000},
+      {desc:'Masticon',                   fecha:'25/06', monto: 5918},
+    ],
+    agosto:[
+      {desc:'Jeal centro veterina', fecha:'07/07', monto:200000},
+      {desc:'Jeal centro veterina', fecha:'07/07', monto:60500},
+      {desc:'Puntomascotas', fecha:'15/07', monto:32990},
+    ]
+  },
+  tiendas_hogar:{
+    ene:[
+      {desc:'Easy Costanera Center',  fecha:'19/12', monto:25750},
+      {desc:'Sodimac HC Huechuraba',  fecha:'07/12', monto:36840},
+    ],
+    feb:[
+      {desc:'Easy Valle Alegre',      fecha:'22/01', monto:204990},
+    ],
+    mar:[],
+    abr:[],
+    mayo:[],
+    junio:[
+      {desc:'Sodimac HC Huechuraba',fecha:'16/05',monto:122950},
+      {desc:'Sodimac HS Ñuble',fecha:'17/05',monto:78070},
+      {desc:'Rosen',fecha:'27/05',monto:29980},
+    ],
+    julio:[],
+    agosto:[
+      {desc:'Sodimac Hc Huechuraba', fecha:'15/07', monto:49609},
+    ],
+    sept:[
+      {desc:'Easy Las Condes', fecha:'09/08', monto:19450},
+      {desc:'SODIMAC HS Nuble', fecha:'27/08', monto:38676},
+    ]
+  },
+  compras_empresa:{
+    ene:[
+      {desc:'Forum (cuota)',fecha:'22/12',monto:566666},
+    ],
+    feb:[
+      {desc:'Forum (cuota)',fecha:'22/01',monto:566666},
+    ],
+    mar:[
+      {desc:'Forum (cuota)',fecha:'22/02',monto:566666},
+    ],
+    abr:[
+      {desc:'Forum (cuota)',fecha:'22/03',monto:566666},
+      {desc:'Btime',        fecha:'18/03',monto:536085},
+    ],
+    mayo:[
+      {desc:'Forum',fecha:'22/04',monto:566666},
+    ],
+    junio:[
+      {desc:'Forum (cuota)',fecha:'25/05',monto:566666},
+      {desc:'Btime',fecha:'03/06',monto:1023904},
+          ],
+    julio:[
+      {desc:'Forum',fecha:'18/06',monto:573103},
+      {desc:'Btime',fecha:'25/06',monto:94962},
+    ],
+    agosto:[
+      {desc:'Sunset distribuidora', fecha:'06/07', monto:61629},
+      {desc:'Forum', fecha:'09/07', monto:566666},
+      {desc:'Shopify* 557', fecha:'14/07', monto:235402},
+      {desc:'Shopify* 558', fecha:'15/07', monto:29678},
+      {desc:'Shopify* 566', fecha:'31/07', monto:21084},
+      {desc:'Mercadopago *inversio', fecha:'02/08', monto:50160},
+    ],
+    sept:[
+      {desc:'Duemint-Wb', fecha:'04/08', monto:160000},
+      {desc:'Shopify* 573163415', fecha:'15/08', monto:246048},
+      {desc:'Forum', fecha:'20/08', monto:573506},
+      {desc:'3-Plasticos Gaune', fecha:'27/08', monto:20400},
+    ]
+  },
+  gobimpuestos:{
+    ene:[
+      {desc:'TGR',                fecha:'30/12', monto:1667933},
+    ],
+    feb:[
+      {desc:'Municipalidad Las C',fecha:'15/01', monto:66642},
+    ],
+    mar:[],
+    abr:[],
+    mayo:[],
+    junio:[
+      {desc:'TGR',                       fecha:'05/05',monto:940911},
+      {desc:'TGR',                       fecha:'06/05',monto:694775},
+      {desc:'Muni de Santiago',          fecha:'14/05',monto:105882},
+      {desc:'Municipalidad de Vitacura', fecha:'14/05',monto:40250},
+      {desc:'SII',                       fecha:'20/05',monto:6248},
+    ],
+    julio:[
+      {desc:'Municipalidad Providencia', fecha:'25/06',monto:178765},
+      {desc:'Municipalidad Vitacura',    fecha:'26/06',monto:  1050},
+    ],
+    agosto:[
+      {desc:'Tgr', fecha:'21/07', monto:183119},
+      {desc:'Municipalidad las', fecha:'21/07', monto:250241},
+      {desc:'Tgr', fecha:'22/07', monto:1108},
+      {desc:'Tgr', fecha:'23/07', monto:71649},
+      {desc:'Tgr', fecha:'24/07', monto:71649},
+      {desc:'Tgr', fecha:'24/07', monto:500},
+    ],
+    sept:[
+      {desc:'Sii', fecha:'21/08', monto:31107},
+      {desc:'Tgr', fecha:'28/08', monto:1662},
+    ]
+  },
+  onlineshopping:{
+    ene:[
+      {desc:'Mercadopago *mercadol',fecha:'12/12',monto:14491},{desc:'Mercadopago *mercadol',fecha:'17/12',monto:57964},
+      {desc:'Merpago*mercadolibre', fecha:'17/12',monto:57800},{desc:'Mercadopago *mercadol',fecha:'21/12',monto:72900},
+      {desc:'Mercadopago *mercadol',fecha:'21/12',monto:7980}, {desc:'Mercadopago *mercadol',fecha:'22/12',monto:76900},
+      {desc:'Mercadopago *lorenava',fecha:'22/12',monto:19400},{desc:'Mercadopago *mercadol',fecha:'23/12',monto:19154},
+      {desc:'Mercadopago *mercadol',fecha:'25/12',monto:20339},{desc:'Mercadopago *mercadol',fecha:'25/12',monto:33980},
+      {desc:'Mercadopago *lorenava',fecha:'27/12',monto:7500}, {desc:'Mercadopago *mercadol',fecha:'27/12',monto:13049},
+      {desc:'Mercadopago *mercadol',fecha:'28/12',monto:29980},{desc:'Mercadopago *mercadol',fecha:'28/12',monto:23970},
+      {desc:'Mercadopago *elsiedec',fecha:'29/12',monto:15989},{desc:'Mp *simplegracias',    fecha:'28/12',monto:28990},
+      {desc:'Mercadopago *santocao',fecha:'07/12',monto:8250}, {desc:'Merpago*icecreamchil',fecha:'11/12',monto:3200},
+    ],
+    feb:[
+      {desc:'Aliexpress',           fecha:'10/01',monto:79439},{desc:'Aliexpress',          fecha:'17/01',monto:79439},
+      {desc:'Aliexpress',           fecha:'23/01',monto:69258},
+      {desc:'Mamasmat',             fecha:'25/01',monto:49990},
+      {desc:'Mercadopago *mercadol',fecha:'08/01',monto:32400},{desc:'Mercadopago *mercadol',fecha:'15/01',monto:28900},
+    ],
+    mar:[
+      {desc:'Mercado Libre',        fecha:'11/02',monto:36570},{desc:'Mercado Libre',        fecha:'20/02',monto:47150},
+      {desc:'Mercadopago *mercadol',fecha:'07/02',monto:24680},{desc:'Mercadopago *mercadol',fecha:'15/02',monto:8960},
+      {desc:'Redgloba*paris',       fecha:'10/02',monto:8000}, {desc:'Redgloba*paris',       fecha:'18/02',monto:8000},
+    ],
+    abr:[
+      {desc:'Shopify',              fecha:'16/03',monto:154938},{desc:'Shopify',             fecha:'19/03',monto:170909},
+      {desc:'Mundo Etiquetas',      fecha:'25/03',monto:147311},{desc:'Mercado Libre',        fecha:'12/03',monto:45000},
+      {desc:'Mercado Libre',        fecha:'22/03',monto:38900},{desc:'Mercadopago *mercadol', fecha:'06/03',monto:29800},
+      {desc:'Mercadopago *mercadol',fecha:'14/03',monto:52100},{desc:'Mercadopago *mercadol', fecha:'25/03',monto:37600},
+      {desc:'Mercadopago *mercadol',fecha:'01/04',monto:31900},
+      {desc:'Paypal *eleg',         fecha:'10/03',monto:82677},
+    ],
+    mayo:[
+      {desc:'Mercadopago *soloesta',fecha:'19/11',monto:9050},{desc:'Mercado Libre',fecha:'25/11',monto:48000},
+      {desc:'Mercado Libre',fecha:'08/12',monto:41670},{desc:'Mercadopago *mercadol',fecha:'24/01',monto:8960},
+      {desc:'Mercadopago *mercadol',fecha:'24/01',monto:24680},{desc:'Mercadopago *cantabri',fecha:'05/04',monto:48356},
+      {desc:'Mercadopago *mercadol',fecha:'07/04',monto:32205},{desc:'Mercadopago *mercadol',fecha:'07/04',monto:29114},
+      {desc:'Mercadopago *wau',fecha:'13/04',monto:3000},{desc:'Mercadopago *esfll',fecha:'16/04',monto:3600},
+      {desc:'Mercadopago *cantabri',fecha:'24/04',monto:4990},{desc:'Mercadopago *lorenava',fecha:'25/04',monto:10000},
+      {desc:'Mercadopago *tfapuman',fecha:'27/04',monto:4980},{desc:'Mercadopago *mercadol',fecha:'30/04',monto:11882},
+      {desc:'Paypal *shop',fecha:'04/04',monto:131360},{desc:'Paypal *drop',fecha:'12/04',monto:15044},
+      {desc:'Paypal *shop',fecha:'30/04',monto:129865},{desc:'Shopify* 516',fecha:'16/04',monto:228506},
+    ],
+    junio:[
+      {desc:'Mercado Libre',fecha:'08/12',monto:41670},{desc:'Mercadopago *mercadol',fecha:'24/01',monto:8960},
+      {desc:'Mercadopago *mercadol',fecha:'24/01',monto:24680},{desc:'Mercadopago *barati',fecha:'07/05',monto:24200},
+      {desc:'Mercadopago *aramark',fecha:'12/05',monto:11484},{desc:'Mercadopago *donricha',fecha:'13/05',monto:13070},
+      {desc:'Mercadopago *esfll',fecha:'14/05',monto:5500},{desc:'Mercadopago *mercadol',fecha:'15/05',monto:-11882},
+      {desc:'Mercadopago *sccomsan',fecha:'18/05',monto:2500},{desc:'Mercadopago *aramark',fecha:'27/05',monto:5640},
+      {desc:'Mercadopago *barati',fecha:'28/05',monto:15000},{desc:'Mercadopago *botichol',fecha:'28/05',monto:3000},
+      {desc:'Mercadopago *ricardo',fecha:'25/05',monto:20350},{desc:'Paypal *eleg',fecha:'04/05',monto:66104},
+      {desc:'Paypal *drop',fecha:'14/05',monto:15014},{desc:'Paypal *shop',fecha:'30/05',monto:85404},
+      {desc:'Shopify* 530',fecha:'19/05',monto:212405},
+    ],
+    julio:[
+      {desc:'Shopify* 539',             fecha:'04/06', monto:216294},
+      {desc:'Shopify* 544',             fecha:'15/06', monto:106477},
+      {desc:'Paypal *drop',             fecha:'12/06', monto: 15348},
+      {desc:'Paypal *shop',             fecha:'01/07', monto:105655},
+      {desc:'Mercadopago *botichol',    fecha:'07/06', monto:  1900},
+      {desc:'Mercadopago *marsalsp',    fecha:'10/06', monto:  8990},
+      {desc:'Mercadopago *ricardo',     fecha:'08/06', monto: 19840},
+    ]
+  },
+  supermercado:{
+    ene:[
+      {desc:'Jumbo',              fecha:'10/12',monto:18440},{desc:'Jumbo',              fecha:'14/12',monto:35900},
+      {desc:'Jumbo',              fecha:'17/12',monto:27150},{desc:'Jumbo',              fecha:'21/12',monto:21980},
+      {desc:'Jumbo',              fecha:'28/12',monto:43031},
+          {desc:'Emporio Lo Pinto', fecha:'27/12', monto:19880},
+          {desc:'Tres Montes', fecha:'15/12', monto:5900},
+          {desc:'Almacén Kamy', fecha:'08/12', monto:15950},
+          {desc:'Barocco Café', fecha:'09/12', monto:29900},
+          {desc:'Barocco Café', fecha:'16/12', monto:38400},
+          {desc:'Barocco Café', fecha:'23/12', monto:42800},
+    ],
+    feb:[
+      {desc:'Jumbo',              fecha:'08/01',monto:38540},{desc:'Jumbo',              fecha:'15/01',monto:31290},
+      {desc:'Jumbo',              fecha:'22/01',monto:29700},{desc:'Jumbo',              fecha:'26/01',monto:32580},
+      {desc:'Jumbo',              fecha:'29/01',monto:44980},{desc:'Lider',              fecha:'11/01',monto:36248},
+          {desc:'Emporio Lo Pinto', fecha:'18/01', monto:14800},
+          {desc:'Barocco Café', fecha:'06/01', monto:36200},
+          {desc:'Barocco Café', fecha:'13/01', monto:41500},
+          {desc:'Barocco Café', fecha:'20/01', monto:38900},
+    ],
+    mar:[
+      {desc:'Jumbo',              fecha:'04/02',monto:27900},{desc:'Jumbo',              fecha:'10/02',monto:36740},
+      {desc:'Jumbo',              fecha:'17/02',monto:28350},{desc:'Jumbo',              fecha:'24/02',monto:43600},
+      {desc:'Lider',              fecha:'06/02',monto:29300},
+          {desc:'Emporio Lo Pinto', fecha:'12/02', monto:9890},
+          {desc:'Barocco Café', fecha:'03/02', monto:28900},
+          {desc:'Barocco Café', fecha:'10/02', monto:32400},
+          {desc:'Barocco Café', fecha:'17/02', monto:25600},
+    ],
+    abr:[
+      {desc:'Jumbo',              fecha:'04/03',monto:44260},{desc:'Jumbo',              fecha:'11/03',monto:38950},
+      {desc:'Jumbo',              fecha:'18/03',monto:55490},{desc:'Jumbo',              fecha:'24/03',monto:51830},
+      {desc:'Lider',              fecha:'14/03',monto:52390},{desc:'Unimarc',            fecha:'20/03',monto:38689},
+          {desc:'Emporio Lo Pinto', fecha:'18/03', monto:8100},
+          {desc:'Barocco Café', fecha:'04/03', monto:24500},
+    ],
+    mayo:[
+      {desc:'Lider.cl',fecha:'07/04',monto:67470},{desc:'Lider.cl (dev.)',fecha:'08/04',monto:-6740},
+      {desc:'Lider.cl',fecha:'23/04',monto:50100},{desc:'Lider.cl',fecha:'30/04',monto:50995},
+      {desc:'Emporio Lo Pinto SPA',fecha:'04/04',monto:2450},{desc:'Emporio Lo Pinto SPA',fecha:'27/04',monto:5800},
+      {desc:'Emporio Lo Pinto SPA',fecha:'02/05',monto:12710},{desc:'Alafruta Alacena',fecha:'07/04',monto:8736},
+          {desc:'Barocco Café', fecha:'04/04', monto:53657},
+    ],
+    junio:[
+      {desc:'Lider.cl (dev.)',fecha:'06/05',monto:-1450},{desc:'Lider.cl',fecha:'06/05',monto:43010},
+      {desc:'Lider.cl (dev.)',fecha:'08/05',monto:-15740},{desc:'Lider.cl',fecha:'08/05',monto:57855},
+      {desc:'Lider.cl',fecha:'19/05',monto:43850},{desc:'Lider.cl (dev.)',fecha:'20/05',monto:-5080},
+      {desc:'Lider.cl',fecha:'26/05',monto:47670},{desc:'Tottus',fecha:'21/05',monto:7990},
+      {desc:'Tottus',fecha:'01/06',monto:10355},{desc:'Emporio Lo Pinto SPA',fecha:'09/05',monto:16900},
+      {desc:'Emporio Lo Pinto SPA',fecha:'20/05',monto:6990},{desc:'Minimarket Delicias Ka',fecha:'04/05',monto:13020},
+      {desc:'Minimarket Delicias Ka',fecha:'04/05',monto:3290},{desc:'Hip Lider Huechuraba',fecha:'16/05',monto:135407},
+          {desc:'Aroma Café', fecha:'26/05', monto:52980},
+    ],
+    julio:[
+      {desc:'Lider.cl',              fecha:'09/06', monto: 38632},
+      {desc:'Lider.cl (dev.)',        fecha:'10/06', monto: -3381},
+      {desc:'Lider.cl',              fecha:'12/06', monto: 73730},
+      {desc:'Lider.cl',              fecha:'19/06', monto: 40700},
+      {desc:'Lider.cl',              fecha:'25/06', monto: 53333},
+      {desc:'Lider.cl',              fecha:'27/06', monto: 55775},
+      {desc:'Redgloba*local 73705',  fecha:'17/06', monto: 12000},
+      {desc:'Minimarket Delicias Ka',fecha:'07/06', monto: 16600},
+      {desc:'Minimarket La Valeri',  fecha:'26/06', monto:  2600},
+      {desc:'Mercadopago *tambo',    fecha:'06/06', monto: 57508},
+          {desc:'Emporio Lo Pinto', fecha:'22/06', monto:550},
+          {desc:'Emporio Lo Pinto', fecha:'22/06', monto:8030},
+          {desc:'Emporio Lo Pinto', fecha:'30/06', monto:26290},
+    ],
+    agosto:[
+      {desc:'Lider.cl', fecha:'05/07', monto:47281},
+      {desc:'Emporio lo pinto', fecha:'09/07', monto:17760},
+      {desc:'Lider.cl', fecha:'10/07', monto:79110},
+      {desc:'Lider.cl', fecha:'14/07', monto:151808},
+      {desc:'Emporio lo pinto', fecha:'18/07', monto:9780},
+      {desc:'Minimarket sandy', fecha:'20/07', monto:1000},
+      {desc:'Lider.cl', fecha:'21/07', monto:94725},
+      {desc:'Maxik', fecha:'22/07', monto:1690},
+      {desc:'Lider.cl', fecha:'22/07', monto:13712},
+      {desc:'Lider.cl', fecha:'22/07', monto:-2289},
+      {desc:'Emporio lo pinto', fecha:'24/07', monto:13100},
+      {desc:'Lider.cl', fecha:'28/07', monto:103358},
+      {desc:'Lider.cl', fecha:'29/07', monto:1000},
+      {desc:'Lider.cl', fecha:'31/07', monto:75560},
+      {desc:'Lider.cl', fecha:'01/08', monto:1672},
+    ],
+    sept:[
+      {desc:'Emporio Lo Pinto Spa', fecha:'04/08', monto:7500},
+      {desc:'Autoservicio Cl Aleman', fecha:'07/08', monto:5304},
+      {desc:'Lider.Cl', fecha:'08/08', monto:43160},
+      {desc:'Emporio Lo Pinto Spa', fecha:'09/08', monto:7100},
+      {desc:'Emporio Lo Pinto Spa', fecha:'12/08', monto:18430},
+      {desc:'Lider.Cl', fecha:'19/08', monto:55296},
+      {desc:'Lider.Cl', fecha:'24/08', monto:22356},
+      {desc:'Emporio Lo Pinto Spa', fecha:'27/08', monto:24410},
+      {desc:'Lider.Cl', fecha:'28/08', monto:68683},
+      {desc:'Lider.Cl', fecha:'28/08', monto:-1323},
+      {desc:'Emporio Lo Pinto Spa', fecha:'31/08', monto:10100},
+      {desc:'Bodega', fecha:'03/09', monto:12990},
+    ]
+  },
+  restaurantes:{
+    ene:[
+{desc:'La Pica de Lo Pinto', fecha:'11/12',monto:18700},
+      {desc:'La Pica de Lo Pinto', fecha:'18/12',monto:21900},{desc:'Dominos',             fecha:'13/12',monto:22490},
+      {desc:'McDonalds',           fecha:'20/12',monto:21400},      {desc:'Pizza',               fecha:'28/12',monto:16900},{desc:'Bar/Rest',             fecha:'19/12',monto:14700},
+      {desc:'Sushi',               fecha:'24/12',monto:33000},      {desc:'Empanadas',           fecha:'12/12',monto:7900},
+    ],
+    feb:[
+{desc:'La Pica de Lo Pinto', fecha:'08/01',monto:24500},
+      {desc:'La Pica de Lo Pinto', fecha:'22/01',monto:28300},{desc:'McDonalds',           fecha:'11/01',monto:19500},
+      {desc:'Dominos',             fecha:'15/01',monto:31490},      {desc:'Sushi',               fecha:'25/01',monto:47900},      {desc:'Restorán',            fecha:'30/01',monto:45800},
+    ],
+    mar:[
+{desc:'McDonalds',           fecha:'05/02',monto:11800},
+ {desc:'Empanadas',           fecha:'19/02',monto:6200},
+      {desc:'Dominos',             fecha:'24/02',monto:19800},    ],
+    abr:[
+{desc:'McDonalds',           fecha:'08/03',monto:9250},
+      {desc:'La Pica de Lo Pinto', fecha:'12/03',monto:12780},    ],
+    mayo:[
+{desc:'La Pica de Lo Pinto',fecha:'04/04',monto:28149},
+      {desc:'El Rincón del Portal',fecha:'20/04',monto:10560},      {desc:'Margo Chicureo',fecha:'25/04',monto:59477},{desc:'Margo Chicureo',fecha:'01/05',monto:25879},
+      {desc:'Sumup * Botillería',fecha:'02/05',monto:11110},
+    ],
+    junio:[
+      {desc:'Crepes y Waffles',fecha:'09/05',monto:35706},{desc:'Bis Parque Arauco',fecha:'09/05',monto:24990},
+      {desc:'Mercadopago *bigopizz',fecha:'20/05',monto:3200},{desc:'Mercadopago *bigopizz',fecha:'20/05',monto:3500},
+      {desc:'Donde Erik',fecha:'23/05',monto:7500},      {desc:'Panadería Oriente',fecha:'26/05',monto:9250},{desc:'40589-SBX Suecia',fecha:'14/05',monto:4900},
+      {desc:'Niu Sushi Chamisero',fecha:'01/06',monto:1400},{desc:'Niu Sushi Chamisero',fecha:'01/06',monto:29500},
+    ],
+    julio:[
+      {desc:'Patio Bellavista',       fecha:'06/06', monto:  3200},
+      {desc:'Panaderia Oriente',      fecha:'11/06', monto: 13410},
+      {desc:'Mercadopago *bigopizz',  fecha:'15/06', monto:  3500},
+      {desc:'Mercadopago *bigopizz',  fecha:'15/06', monto:  2400},
+      {desc:'Mercadopago *paradiso',  fecha:'25/06', monto:  1690},
+      {desc:'Curry & Kabab Indian',   fecha:'26/06', monto:  9350},
+      {desc:'Las Espigas',            fecha:'03/07', monto: 14500},
+    ],
+    agosto:[
+      {desc:'Apumanque 158', fecha:'08/07', monto:6390},
+      {desc:'Mercadopago *aramark', fecha:'13/07', monto:3690},
+      {desc:'Wua wua', fecha:'13/07', monto:20970},
+      {desc:'Mercadopago *aramark', fecha:'13/07', monto:5990},
+      {desc:'Mercadopago *bigopizz', fecha:'27/07', monto:5500},
+      {desc:'Mercadopago *tavola', fecha:'29/07', monto:9100},
+      {desc:'Tuu*aroma y sabor', fecha:'30/07', monto:2000},
+      {desc:'Mercadopago *wau', fecha:'31/07', monto:4000},
+      {desc:'Tuu*funforall', fecha:'02/08', monto:7000},
+    ],
+    sept:[
+      {desc:'Coffee And Choc', fecha:'03/08', monto:24068},
+      {desc:'The Office Next Door', fecha:'06/08', monto:10000},
+      {desc:'Mercadopago *Aramark', fecha:'24/08', monto:15268},
+      {desc:'Payscan*Pga Vending Pg', fecha:'24/08', monto:1400},
+      {desc:'Mercadopago *Aramark', fecha:'24/08', monto:1590},
+    ]
+  },
+  combustible:{
+    ene:[
+      {desc:'Shell',               fecha:'05/12',monto:35000},{desc:'Shell',               fecha:'12/12',monto:42730},
+      {desc:'Copec',               fecha:'19/12',monto:38500},{desc:'Shell',               fecha:'26/12',monto:40000},
+      {desc:'Copec',               fecha:'28/12',monto:19500},
+          {desc:'Copec Autom.', fecha:'22/12', monto:9900},
+    ],
+    feb:[
+      {desc:'Shell',               fecha:'06/01',monto:44100},{desc:'Copec',               fecha:'13/01',monto:38900},
+      {desc:'Shell',               fecha:'21/01',monto:40200},{desc:'Copec',               fecha:'27/01',monto:43200},
+      {desc:'Shell',               fecha:'30/01',monto:41418},
+    ],
+    mar:[
+      {desc:'Shell',               fecha:'04/02',monto:32000},{desc:'Copec',               fecha:'11/02',monto:21000},
+      {desc:'Shell',               fecha:'18/02',monto:21182},{desc:'Copec',               fecha:'25/02',monto:17000},
+    ],
+    abr:[
+      {desc:'Shell',               fecha:'04/03',monto:19000},{desc:'Copec',               fecha:'11/03',monto:17929},
+      {desc:'Shell',               fecha:'20/03',monto:14200},
+    ],
+    mayo:[
+      {desc:'Shell.F522 Av.P.Ed Mon',fecha:'05/04',monto:64022},{desc:'Shell Panam. Norte',fecha:'14/04',monto:58194},
+      {desc:'Shell Panam. Norte',fecha:'23/04',monto:59104},{desc:'Shell Panam. Norte',fecha:'01/05',monto:64996},
+    ],
+    junio:[
+      {desc:'Shell Panam. Norte',fecha:'11/05',monto:59683},{desc:'Shell Panam. Norte',fecha:'28/05',monto:71573},
+    ],
+    julio:[
+      {desc:'Shell Panam. Norte',    fecha:'05/06', monto: 59803},
+      {desc:'Shell Panam. Norte',    fecha:'10/06', monto: 61664},
+      {desc:'Shell Panam. Norte',    fecha:'18/06', monto: 46907},
+      {desc:'Shell Panam. Norte',    fecha:'26/06', monto: 51652},
+    ],
+    agosto:[
+      {desc:'Shell Panam. Norte', fecha:'15/07', monto:67385},
+      {desc:'Shell Panam. Norte', fecha:'30/07', monto:65178},
+    ],
+    sept:[
+      {desc:'Shell Panam. Norte', fecha:'09/08', monto:51765},
+      {desc:'Shell Panam. Norte', fecha:'20/08', monto:62017},
+      {desc:'Shell.F522 Av.P.Ed Mon', fecha:'29/08', monto:48119},
+    ]
+  },
+  seguros:{
+    ene:[
+      {desc:'Kushkiseguros',        fecha:'23/11',monto:49410},      {desc:'Seg. Desgravamen',     fecha:'02/12',monto:843},  {desc:'Seguro Autom.',         fecha:'10/12',monto:7650},
+    ],
+    feb:[
+      {desc:'Kushkiseguros',        fecha:'23/12',monto:49410},      {desc:'Seg. Desgravamen',     fecha:'02/01',monto:843},  {desc:'Seguro Autom.',         fecha:'10/01',monto:8300},
+    ],
+    mar:[
+      {desc:'Kushkiseguros',        fecha:'23/01',monto:49410},      {desc:'Seg. Desgravamen',     fecha:'02/02',monto:843},  {desc:'Seguro Autom.',         fecha:'10/02',monto:8300},
+    ],
+    abr:[
+      {desc:'Kushkiseguros',        fecha:'23/02',monto:49410},      {desc:'Seg. Desgravamen',     fecha:'02/03',monto:843},  {desc:'Seguro Autom.',         fecha:'10/03',monto:8300},
+    ],
+    mayo:[
+      {desc:'Kushkiseguros',fecha:'23/04',monto:49410},      {desc:'Seg. Desgravamen 06247',fecha:'02/05',monto:843},
+    ],
+    junio:[
+      {desc:'Kushkiseguros',fecha:'29/05',monto:50088},{desc:'Compra Segfala cl soap',fecha:'11/05',monto:10990},
+      {desc:'Seg. Desgravamen 06247',fecha:'02/06',monto:854},
+    ],
+    julio:[
+      {desc:'Kushkiseguros',              fecha:'23/06', monto: 50365},
+      {desc:'Seg. Desgravamen 06247',     fecha:'02/07', monto:   857},
+    ],
+    agosto:[
+      {desc:'Kushkiseguros', fecha:'23/07', monto:50419},
+      {desc:'Seg. Desgravamen', fecha:'02/08', monto:858},
+    ],
+    sept:[
+      {desc:'Kushkiseguros', fecha:'24/08', monto:50443},
+      {desc:'01-12 Seg Desgravamen 06247', fecha:'02/09', monto:858},
+    ]
+  },
+  carniceria:{
+    ene:[
+      {desc:'Carnes Ganadera El C', fecha:'10/12',monto:12700},{desc:'Carnes Ganadera El C',fecha:'22/12',monto:11000},
+    ],
+    feb:[
+      {desc:'Carnes Ganadera El C', fecha:'08/01',monto:9600},{desc:'Carnes Ganadera El C', fecha:'22/01',monto:9960},
+    ],
+    mar:[],
+    abr:[
+      {desc:'Carnes Ganadera El C', fecha:'11/03',monto:15710},
+    ],
+    mayo:[
+      {desc:'Carnes Ganadera El C',fecha:'12/04',monto:14850},{desc:'Carnes Ganadera El C',fecha:'16/04',monto:11150},
+      {desc:'Carnes Ganadera El C',fecha:'28/04',monto:6200},
+    ],
+    junio:[
+      {desc:'Carnes Ganadera El C',fecha:'08/05',monto:6200},{desc:'Carnes Ganadera El C',fecha:'10/05',monto:29330},
+      {desc:'Carnes Ganadera El C',fecha:'10/05',monto:5980},{desc:'Carnes Ganadera El C',fecha:'13/05',monto:6150},
+      {desc:'Carnes Ganadera El C',fecha:'16/05',monto:56370},{desc:'Carnes Ganadera El C',fecha:'18/05',monto:7800},
+      {desc:'Carnes Ganadera El C',fecha:'20/05',monto:8730},{desc:'Carnes Ganadera El C',fecha:'22/05',monto:12220},
+      {desc:'Carnes Ganadera El C',fecha:'29/05',monto:14330},
+    ],
+    julio:[
+      {desc:'Carnes Ganadera El C',  fecha:'04/06', monto: 18460},
+      {desc:'Carnes Ganadera El C',  fecha:'16/06', monto: 20380},
+      {desc:'Carnes Ganadera El C',  fecha:'16/06', monto:  1800},
+      {desc:'Carnes Ganadera El C',  fecha:'21/06', monto:  7800},
+      {desc:'Carnes Ganadera El C',  fecha:'24/06', monto: 20400},
+    ],
+    agosto:[
+      {desc:'Carnes ganadera el c', fecha:'07/07', monto:8860},
+      {desc:'Alo carne ltda.', fecha:'09/07', monto:15170},
+      {desc:'Carnes ganadera el c', fecha:'25/07', monto:19970},
+    ]
+  },
+  salud:{
+    ene:[
+      {desc:'Farmacia Bicentenario', fecha:'14/12',monto:15988},{desc:'Clínica Alemana STG', fecha:'20/12',monto:6000},
+    ],
+    feb:[
+      {desc:'Farmacia Bicentenario', fecha:'10/01',monto:27980},{desc:'Clínica Alemana STG', fecha:'14/01',monto:47790},
+      {desc:'Clínica Alemana STG',   fecha:'22/01',monto:47833},
+          {desc:'Buho Chile', fecha:'20/01', monto:61807},
+          {desc:'Buho Chile', fecha:'28/01', monto:25055},
+    ],
+    mar:[],
+    abr:[
+      {desc:'Farmacia Bicentenario', fecha:'11/03',monto:19590},{desc:'Clínica Alemana STG', fecha:'18/03',monto:20000},
+          {desc:'Buho Chile', fecha:'28/03', monto:61807},
+    ],
+    mayo:[
+      {desc:'Farmacia Bicentenario',fecha:'04/04',monto:17990},{desc:'Farmacia Bicentenario',fecha:'30/04',monto:31970},
+      {desc:'Clínica Alemana STG',fecha:'07/04',monto:10608},{desc:'Fasa Loc 98',fecha:'02/05',monto:31018},
+    ],
+    junio:[
+      {desc:'Clínica Alemana Vitacu',fecha:'27/05',monto:4400},{desc:'Masticon',fecha:'18/05',monto:10978},
+      {desc:'Ad Franq Renacimien',fecha:'25/05',monto:10690},
+          {desc:'Buho Chile', fecha:'03/06', monto:58330},
+          {desc:'Sb 890', fecha:'09/05', monto:71197},
+          {desc:'Sb 890', fecha:'24/05', monto:59198},
+    ],
+    julio:[
+      {desc:'Botica 911',             fecha:'05/06', monto:  6200},
+      {desc:'Dr. Clinica Alemana',    fecha:'06/06', monto:  5805},
+      {desc:'EC Clinica Davila',      fecha:'07/06', monto:  4850},
+      {desc:'Auto CL Alemana Chicur', fecha:'08/06', monto:  5304},
+      {desc:'Clinica Alemana',        fecha:'09/06', monto: 34582},
+      {desc:'Farmacia Bicentenario',  fecha:'16/06', monto: 96800},
+      {desc:'Farmacia Bicentenario',  fecha:'17/06', monto: 12900},
+      {desc:'Botica 911',             fecha:'20/06', monto: 15400},
+      {desc:'Farmacia Bicentenario',  fecha:'20/06', monto: 20390},
+      {desc:'Farmacia Bicentenario',  fecha:'22/06', monto: 15000},
+      {desc:'Salcobrand Apoquindo 5', fecha:'02/07', monto: 59198},
+      {desc:'Clinica Alemana Vitacu', fecha:'03/07', monto:  1600},
+          {desc:'Color Splash', fecha:'14/06', monto:115000},
+    ],
+    agosto:[
+      {desc:'Dr. Clinica Alemana', fecha:'04/07', monto:5805},
+      {desc:'Farmacia bicentenario', fecha:'09/07', monto:99960},
+      {desc:'Dr. Clinica Alemana', fecha:'09/07', monto:5805},
+      {desc:'Farmacia bicentenario', fecha:'11/07', monto:7400},
+      {desc:'Dr. Clinica Alemana', fecha:'13/07', monto:5805},
+      {desc:'Salcobrand', fecha:'15/07', monto:29599},
+      {desc:'Salcobrand', fecha:'18/07', monto:24111},
+      {desc:'Salcobrand', fecha:'22/07', monto:22999},
+      {desc:'Dr. Clinica Alemana', fecha:'22/07', monto:5805},
+      {desc:'Fasa loc 272', fecha:'24/07', monto:18800},
+      {desc:'Farmacia bicentenario', fecha:'28/07', monto:2690},
+    ],
+    sept:[
+      {desc:'Salcobrand Manquehue N', fecha:'07/08', monto:96221},
+      {desc:'Dr. Clinica Alemana Santi', fecha:'20/08', monto:5805},
+      {desc:'Dr. Clinica Alemana Santi', fecha:'24/08', monto:6102},
+      {desc:'Dr. Clinica Alemana Santi', fecha:'26/08', monto:5805},
+      {desc:'Farmacia Bicentenario', fecha:'27/08', monto:1990},
+      {desc:'Fasa 205', fecha:'30/08', monto:30004},
+      {desc:'Salcobrand Apoquindo 5', fecha:'03/09', monto:19699},
+          {desc:'Buho Chile', fecha:'26/08', monto:45025},
+    ]
+  },
+  retail:{
+    ene:[
+      {desc:'Falabella.com',        fecha:'10/12',monto:199990},{desc:'Ripley',              fecha:'18/12',monto:149990},
+      {desc:'Paris',                fecha:'22/12',monto:89990},    ],
+    feb:[
+      {desc:'Falabella.com',        fecha:'14/01',monto:99990},
+    ],
+    mar:[
+      {desc:'Falabella.com',        fecha:'08/02',monto:79990},
+    ],
+    abr:[
+      {desc:'Falabella.com',        fecha:'10/03',monto:189572},      {desc:'Paris',                fecha:'25/03',monto:41600},
+    ],
+    mayo:[
+      {desc:'Falabella.com',fecha:'08/04',monto:74970},
+      {desc:'Florería Parque',fecha:'02/05',monto:12000},    ],
+    junio:[
+      {desc:'PC Factory Plaza Norte',fecha:'07/05',monto:79989},{desc:'PC Factory Open Kenn',fecha:'21/05',monto:152590},
+      {desc:'Confecciones Nabil SPA',fecha:'30/05',monto:40000},
+      {desc:'Wilsonstore.cl',fecha:'30/05',monto:159844},{desc:'Varsovienne SA',fecha:'07/05',monto:56970},
+      {desc:'Hym Mall Plaza Norte',fecha:'07/05',monto:49170},{desc:'Intime - Plaza Norte',fecha:'07/05',monto:25190},
+      {desc:'Sporthouse-Apumanque',fecha:'28/05',monto:25990},{desc:'Apumanque 158',fecha:'25/05',monto:19800},
+      {desc:'Casa Ideas Parque Arauco',fecha:'24/05',monto:14180},{desc:'Falabella.com',fecha:'26/05',monto:25980},
+      {desc:'Dev. Falabella.com',fecha:'28/05',monto:-25980},
+      {desc:'Lippi Parque Arauco',fecha:'24/05',monto:3000},
+    ],
+    julio:[
+      {desc:'Ripley Webpayplus',      fecha:'04/06', monto:249990},
+      {desc:'Sporthouse-Apumanqu',    fecha:'02/07', monto: 25990},
+    ],
+    agosto:[
+      {desc:'Redgloba*paris', fecha:'08/07', monto:4000},
+      {desc:'Ripley mall plaza norte', fecha:'18/07', monto:400},
+      {desc:'4 kids plaza norte', fecha:'18/07', monto:12089},
+      {desc:'Sporthouse-apumanqu', fecha:'20/07', monto:5000},
+      {desc:'Falabella.com', fecha:'29/07', monto:30980},
+    ],
+    sept:[
+      
+      {desc:'Ripley Santiago 4 0', fecha:'27/08', monto:616},
+      {desc:'RedGloba*PARIS', fecha:'01/09', monto:4000},
+    ]
+  },
+  digital:{
+    ene:[
+{desc:'Spotify',              fecha:'07/12',monto:5490},
+      {desc:'Amazon Prime',        fecha:'10/12',monto:3990},{desc:'Microsoft 365',        fecha:'12/12',monto:6990},
+      {desc:'Adobe',               fecha:'15/12',monto:22390},{desc:'Canva',               fecha:'18/12',monto:7900},
+      {desc:'Google One',          fecha:'20/12',monto:3490},{desc:'Apple',                fecha:'22/12',monto:12990},
+{desc:'Claude AI',           fecha:'25/12',monto:16700},
+      {desc:'Icloud+',             fecha:'14/12',monto:5200},
+    ],
+    feb:[
+{desc:'Spotify',              fecha:'07/01',monto:5490},
+      {desc:'Amazon Prime',        fecha:'10/01',monto:3990},{desc:'Microsoft 365',        fecha:'12/01',monto:6990},
+      {desc:'Adobe',               fecha:'15/01',monto:22390},{desc:'Canva',               fecha:'18/01',monto:7900},
+      {desc:'Google One',          fecha:'20/01',monto:3490},{desc:'Apple',                fecha:'22/01',monto:12990},
+{desc:'Coursera',            fecha:'27/01',monto:75066},
+      {desc:'Icloud+',             fecha:'14/01',monto:5200},{desc:'Claude AI',            fecha:'25/01',monto:19850},
+    ],
+    mar:[
+{desc:'Spotify',              fecha:'07/02',monto:5490},
+      {desc:'Amazon Prime',        fecha:'10/02',monto:3990},{desc:'Microsoft 365',        fecha:'12/02',monto:6990},
+      {desc:'Adobe',               fecha:'15/02',monto:22390},{desc:'Canva',               fecha:'18/02',monto:7900},
+      {desc:'Google One',          fecha:'20/02',monto:3490},{desc:'Apple',                fecha:'22/02',monto:12990},
+{desc:'Icloud+',             fecha:'14/02',monto:5200},
+      {desc:'Claude AI',           fecha:'25/02',monto:19850},{desc:'Cursor',              fecha:'28/02',monto:90960},
+    ],
+    abr:[
+{desc:'Spotify',              fecha:'07/03',monto:5490},
+      {desc:'Amazon Prime',        fecha:'10/03',monto:3990},{desc:'Microsoft 365',        fecha:'12/03',monto:6990},
+      {desc:'Adobe',               fecha:'15/03',monto:22390},{desc:'Canva',               fecha:'18/03',monto:7900},
+      {desc:'Google One',          fecha:'20/03',monto:3490},{desc:'Apple',                fecha:'22/03',monto:12990},
+{desc:'Icloud+',             fecha:'14/03',monto:5200},
+      {desc:'Claude AI',           fecha:'25/03',monto:19850},{desc:'Cursor',              fecha:'28/03',monto:90960},
+      {desc:'Chatgpt Plus',        fecha:'30/03',monto:110666},
+    ],
+    mayo:[
+      {desc:'Google Play',fecha:'05/04',monto:11000},{desc:'Canva',fecha:'08/04',monto:7900},
+      {desc:'Canva',fecha:'21/04',monto:7900},{desc:'Virtual*Duemint Portal',fecha:'27/04',monto:80000},
+      {desc:'Dlocal *GoDaddy.com',fecha:'24/04',monto:157066},{desc:'Apple.com/bi',fecha:'10/04',monto:17831},
+      {desc:'Apple.com/bi',fecha:'10/04',monto:2990},{desc:'Apple.com/bi',fecha:'21/04',monto:30000},
+      {desc:'Apple.com/bi',fecha:'25/04',monto:9990},{desc:'Apple.com/bi',fecha:'25/04',monto:990},
+      {desc:'Apple.com/bi',fecha:'29/04',monto:2990},{desc:'Google *Cloud',fecha:'22/04',monto:15000},
+      {desc:'Anthropic (Claude)',fecha:'11/04',monto:5390},{desc:'Claude.ai Suscripción',fecha:'03/05',monto:21769},
+      {desc:'Kindle svcs*',fecha:'01/05',monto:2291},{desc:'Kindle svcs*',fecha:'01/05',monto:8570},
+      {desc:'Higgsfield i',fecha:'15/04',monto:4603},
+    ],
+    junio:[
+      {desc:'Canva',fecha:'08/05',monto:7900},{desc:'Canva',fecha:'21/05',monto:7900},
+{desc:'Dl*Google YouTube',fecha:'06/05',monto:11000},
+      {desc:'Virtual*Duemint Portal',fecha:'05/05',monto:50000},{desc:'Duemint-WB',fecha:'20/05',monto:30000},
+      {desc:'Apple.com/bi',fecha:'10/05',monto:2990},{desc:'Apple.com/bi',fecha:'11/05',monto:9990},
+      {desc:'Apple.com/bi',fecha:'17/05',monto:30000},{desc:'Apple.com/bi',fecha:'24/05',monto:12399},
+      {desc:'Apple.com/bi',fecha:'25/05',monto:990},{desc:'Anthropic (Claude)',fecha:'03/06',monto:21590},
+      {desc:'Higgsfield i',fecha:'15/05',monto:4729},{desc:'Tuu*Controlremoto Chile',fecha:'01/06',monto:16000},
+    ],
+    julio:[
+      {desc:'Dl*Google YouTube',      fecha:'06/06', monto: 11000},
+      {desc:'Canva',                  fecha:'08/06', monto:  7900},
+      {desc:'Canva',                  fecha:'21/06', monto:  7900},
+      {desc:'Univ.de Chile NIC-C',    fecha:'23/06', monto: 19980},
+      {desc:'Audible*pl4b',           fecha:'05/06', monto:  8163},
+      {desc:'Apple.com/bi',           fecha:'07/06', monto:  4480},
+      {desc:'Apple.com/bi',           fecha:'07/06', monto:  9990},
+      {desc:'Apple.com/bi',           fecha:'08/06', monto: 10901},
+      {desc:'Apple.com/bi',           fecha:'11/06', monto: 12980},
+      {desc:'Cloud 2g9cz5',           fecha:'12/06', monto:  6558},
+      {desc:'Apple.com/bi',           fecha:'17/06', monto: 30000},
+      {desc:'Apple.com/bi',           fecha:'22/06', monto:  3162},
+      {desc:'Higgsfield i',           fecha:'15/06', monto:  4630},
+      {desc:'Apple.com/bi',           fecha:'30/06', monto:  4480},
+    ],
+    agosto:[
+      {desc:'Higgsfield', fecha:'04/07', monto:5868},
+      {desc:'Dl*google youtube', fecha:'05/07', monto:11000},
+      {desc:'Anthropic*', fecha:'05/07', monto:22345},
+      {desc:'Apple.com/bi', fecha:'06/07', monto:9990},
+      {desc:'Canva', fecha:'08/07', monto:7900},
+      {desc:'Apple.com/bi', fecha:'10/07', monto:2990},
+      {desc:'Apple.com/bi', fecha:'10/07', monto:19990},
+      {desc:'Apple.com/bi', fecha:'11/07', monto:9990},
+      {desc:'Dropbox', fecha:'14/07', monto:15050},
+      {desc:'Higgsfield', fecha:'17/07', monto:4858},
+      {desc:'Apple.com/bi', fecha:'17/07', monto:30000},
+      {desc:'Higgsfield', fecha:'17/07', monto:24398},
+      {desc:'Audible', fecha:'18/07', monto:8521},
+      {desc:'Canva', fecha:'21/07', monto:7900},
+      {desc:'Apple.com/bi', fecha:'22/07', monto:3290},
+      {desc:'Audible', fecha:'28/07', monto:8605},
+      {desc:'Apple.com/bi', fecha:'30/07', monto:4480},
+      {desc:'Cloud dqx4gl', fecha:'01/08', monto:3456},
+    ],
+    sept:[
+      {desc:'Apple.Com/Bill', fecha:'04/08', monto:19990},
+      {desc:'Anthropic', fecha:'05/08', monto:5504},
+      {desc:'Anthropic* Claude Sub', fecha:'05/08', monto:22014},
+      {desc:'Dl*Google Youtube', fecha:'06/08', monto:11000},
+      {desc:'Canva', fecha:'08/08', monto:7900},
+      {desc:'Higgsfield Inc.', fecha:'08/08', monto:5801},
+      {desc:'Apple.Com/Bill', fecha:'10/08', monto:2990},
+      {desc:'Apple.Com/Bill', fecha:'11/08', monto:9990},
+      {desc:'Apple.Com/Bill', fecha:'11/08', monto:9990},
+      {desc:'Higgsfield Inc.', fecha:'15/08', monto:4758},
+      {desc:'Dropbox*H57Kp733Ppxl', fecha:'16/08', monto:14806},
+      {desc:'Apple.Com/Bill', fecha:'17/08', monto:30000},
+      {desc:'Canva', fecha:'21/08', monto:7900},
+      {desc:'Apple.Com/Bill', fecha:'22/08', monto:3290},
+      {desc:'Apple.Com/Bill', fecha:'25/08', monto:11455},
+      {desc:'Anthropic* Claude Sub', fecha:'30/08', monto:108302},
+      {desc:'Apple.Com/Bill', fecha:'30/08', monto:4480},
+      {desc:'Audible*836557WR3', fecha:'01/09', monto:8516},
+      {desc:'Cloud 9Nnm36', fecha:'01/09', monto:16214},
+      {desc:'Higgsfield Inc.', fecha:'02/09', monto:24688},
+      {desc:'Haulmer*Comercializado', fecha:'03/09', monto:9900},
+    ]
+  },
+  servicios:{
+    sept:[
+      {desc:'Luz (Estado)', fecha:'06/08', monto:532452},
+    ],
+    junio:[
+      {desc:'Enel (Luz)', fecha:'07/05', monto:45579},
+    ],
+    abr:[
+      {desc:'Enel (Luz)', fecha:'12/03', monto:33010},
+    ],
+    mar:[
+      {desc:'Enel (Luz)', fecha:'12/02', monto:65600},
+    ],
+    feb:[
+      {desc:'Enel (Luz)', fecha:'12/01', monto:113990},
+    ],
+    ene:[
+      {desc:'Enel (Luz)', fecha:'12/12', monto:99990},
+    ],
+    julio:[
+      {desc:'Coop Agua Potable', fecha:'04/06', monto:11300},
+      {desc:'Coop Agua Potable', fecha:'01/07', monto:13150},
+          {desc:'Luz (Estado)', fecha:'25/06', monto:50356},
+          {desc:'Luz (Estado)', fecha:'25/06', monto:416166},
+    ],
+    agosto:[
+      {desc:'Coop Agua Potable', fecha:'03/08', monto:7820},
+    ],
+  },
+  gas:{
+    julio:[
+      {desc:'Gas', fecha:'22/06', monto:199415},
+    ],
+  },
+  telecom:{
+    ene:[
+      {desc:'Movistar', fecha:'20/12', monto:28990},
+    ],
+    feb:[
+      {desc:'Movistar', fecha:'20/01', monto:28990},
+      {desc:'Movistar', fecha:'24/01', monto:28990},
+    ],
+    mar:[
+      {desc:'Movistar', fecha:'20/02', monto:6370},
+    ],
+    abr:[
+    ],
+    mayo:[
+    ],
+    junio:[
+      {desc:'Movistar', fecha:'24/05', monto:28600},
+    ],
+    julio:[
+      {desc:'Telefónica', fecha:'16/06', monto:31242},
+    ],
+    agosto:[
+      {desc:'Telefónica', fecha:'15/07', monto:32149},
+      {desc:'Movistar', fecha:'23/07', monto:29987},
+    ],
+    sept:[
+      {desc:'Telefónica', fecha:'04/08', monto:32194},
+      {desc:'Telefónica', fecha:'18/08', monto:32149},
+    ],
+  },
+  inet:{
+    ene:[
+      {desc:'Netflix', fecha:'05/12', monto:8490},
+      {desc:'Capital Net', fecha:'08/12', monto:24900},
+    ],
+    feb:[
+      {desc:'Netflix', fecha:'05/01', monto:8490},
+      {desc:'Capital Net', fecha:'08/01', monto:24900},
+    ],
+    mar:[
+      {desc:'Netflix', fecha:'05/02', monto:8490},
+      {desc:'Capital Net', fecha:'08/02', monto:24900},
+    ],
+    abr:[
+      {desc:'Netflix', fecha:'05/03', monto:8490},
+      {desc:'Capital Net', fecha:'08/03', monto:24900},
+    ],
+    mayo:[
+      {desc:'Capital Net', fecha:'06/04', monto:24900},
+      {desc:'Netflix', fecha:'26/04', monto:12990},
+      {desc:'Starlink', fecha:'26/04', monto:34999},
+      {desc:'Capital Net', fecha:'27/04', monto:14900},
+    ],
+    junio:[
+      {desc:'Capital Net', fecha:'25/05', monto:14900},
+      {desc:'Netflix', fecha:'26/05', monto:12990},
+      {desc:'Starlink', fecha:'27/05', monto:34999},
+    ],
+    julio:[
+      {desc:'Capital Net', fecha:'24/06', monto:14900},
+      {desc:'Netflix', fecha:'26/06', monto:12990},
+      {desc:'Starlink', fecha:'27/06', monto:36999},
+    ],
+    agosto:[
+      {desc:'Capital Net', fecha:'25/07', monto:14900},
+      {desc:'Netflix', fecha:'26/07', monto:12990},
+      {desc:'Starlink', fecha:'27/07', monto:36999},
+    ],
+    sept:[
+      {desc:'Netflix', fecha:'26/08', monto:12990},
+      {desc:'Capital Net', fecha:'26/08', monto:14900},
+      {desc:'Starlink', fecha:'27/08', monto:36999},
+    ],
+  },
+  snack:{
+    ene:[
+      {desc:'Cafetería', fecha:'30/12', monto:8500},
+    ],
+    feb:[
+      {desc:'Cafetería', fecha:'29/01', monto:7840},
+    ],
+    mar:[
+      {desc:'Cafetería', fecha:'26/02', monto:4920},
+    ],
+    abr:[
+      {desc:'Cafetería', fecha:'22/03', monto:6648},
+    ],
+    mayo:[
+      {desc:'Café Don R', fecha:'06/04', monto:2550},
+      {desc:'Café Don R', fecha:'21/04', monto:2550},
+      {desc:'Petit Café', fecha:'23/04', monto:2100},
+    ],
+    junio:[
+      {desc:'Café Don R', fecha:'08/05', monto:1950},
+      {desc:'Café Don R', fecha:'08/05', monto:2550},
+      {desc:'Café Don R', fecha:'14/05', monto:2550},
+      {desc:'Café Don R', fecha:'20/05', monto:2550},
+      {desc:'Café Don R', fecha:'25/05', monto:2550},
+      {desc:'Café Don R', fecha:'28/05', monto:9400},
+    ],
+    julio:[
+      {desc:'Café Don R', fecha:'08/06', monto:2550},
+      {desc:'Café Don R', fecha:'10/06', monto:2550},
+      {desc:'Cafetería Flor', fecha:'14/06', monto:10190},
+      {desc:'Cafetería Flor', fecha:'19/06', monto:1000},
+      {desc:'Café Don R', fecha:'23/06', monto:2550},
+      {desc:'Café Bombay', fecha:'30/06', monto:9390},
+      {desc:'Café Don R', fecha:'01/07', monto:1950},
+      {desc:'Café Don R', fecha:'01/07', monto:600},
+      {desc:'Petit Café', fecha:'02/07', monto:2850},
+    ],
+    agosto:[
+      {desc:'Café Don R', fecha:'06/07', monto:2550},
+      {desc:'Cafetería Fadra', fecha:'15/07', monto:2700},
+      {desc:'Café Don R', fecha:'20/07', monto:2550},
+      {desc:'Petit Café', fecha:'20/07', monto:2700},
+      {desc:'Cafetería Flor', fecha:'26/07', monto:12500},
+      {desc:'Cafetería Flor', fecha:'26/07', monto:2600},
+      {desc:'Cafetería', fecha:'31/07', monto:6400},
+      {desc:'Café Don R', fecha:'03/08', monto:2550},
+    ],
+    sept:[
+      {desc:'Petit Café', fecha:'07/08', monto:1850},
+      {desc:'Café Don R', fecha:'07/08', monto:2550},
+      {desc:'Café Don R', fecha:'17/08', monto:2550},
+      {desc:'Café Don R', fecha:'01/09', monto:2550},
+    ],
+  },
+  salud_pers:{
+    ene:[
+      {desc:'Cotización Salud', fecha:'13/11', monto:175362},
+    ],
+    feb:[
+      {desc:'Cotización Salud', fecha:'13/12', monto:208178},
+    ],
+    mar:[
+      {desc:'Cotización Salud', fecha:'13/01', monto:215212},
+    ],
+    abr:[
+      {desc:'Cotización Salud', fecha:'13/02', monto:215726},
+    ],
+    mayo:[
+      {desc:'Cotización Salud', fecha:'13/04', monto:192197},
+    ],
+  },
+  prov_local:{
+    sept:[
+      {desc:'MRPS Meadlpmx', fecha:'06/08', monto:275454},
+    ],
+    ene:[
+      {desc:'Drelojes', fecha:'20/12', monto:39448},
+    ],
+    abr:[
+      {desc:'Drelojes', fecha:'20/03', monto:84000},
+    ],
+    mayo:[
+      {desc:'Drelojes', fecha:'20/04', monto:122625},
+          {desc:'MRPS Meadlpmx', fecha:'20/04', monto:20900},
+    ],
+  },
+  otros:{
+    ene:[
+      {desc:'Saba Estacionam.',     fecha:'10/12',monto:2450}, {desc:'Lavandería',          fecha:'14/12',monto:7100},
+      {desc:'Rosen',                fecha:'22/12',monto:28724},
+    ],
+    feb:[
+      {desc:'Saba Estacionam.',     fecha:'10/01',monto:1800},  {desc:'Lavandería',         fecha:'15/01',monto:7100},
+      {desc:'Rosen',                fecha:'22/01',monto:28890},      {desc:'Bodega',               fecha:'28/01',monto:164664},
+    ],
+    mar:[
+    ],
+    abr:[
+    ],
+    mayo:[
+      {desc:'Spid General Holley',fecha:'06/04',monto:1380},{desc:'Vida Parque',fecha:'05/04',monto:4850},
+      {desc:'Saba Estacionamientos',fecha:'07/04',monto:1200},{desc:'Matias Vargas Mira',fecha:'27/04',monto:6340},
+      {desc:'Florería Parque',fecha:'02/05',monto:12000},
+    ],
+    junio:[
+      {desc:'Saba Estacionamientos',fecha:'05/05',monto:3600},{desc:'Saba Estacionamientos',fecha:'12/05',monto:1200},
+      {desc:'Saba Arauco Kennedy',fecha:'09/05',monto:5000},{desc:'Saba Arauco Kennedy',fecha:'24/05',monto:3100},
+      {desc:'Saba Estacionamientos',fecha:'02/06',monto:400},{desc:'Saba Estacionamientos',fecha:'03/06',monto:6400},
+      {desc:'Central Parking System',fecha:'07/05',monto:1750},{desc:'Central Parking System',fecha:'17/05',monto:1700},
+      {desc:'Central Parking System',fecha:'26/05',monto:2800},{desc:'Angelo Ltda',fecha:'01/06',monto:6000},
+      {desc:'Leyla Massiel Jara L',fecha:'16/05',monto:16800},{desc:'Spid General Holley',fecha:'04/05',monto:2990},
+      {desc:'Spid General Holley',fecha:'14/05',monto:1950},{desc:'Spid General Holley',fecha:'28/05',monto:2650},
+      {desc:'Vida Parque',fecha:'05/04',monto:4850},{desc:'Arturo Prat',fecha:'18/05',monto:3150},
+      {desc:'Rosen',fecha:'27/05',monto:29980},
+    ],
+    julio:[
+            {desc:'Saba Estacionamento',    fecha:'06/06', monto:  2800},
+      {desc:'Saba Estacionamento',    fecha:'09/06', monto:  2000},
+      {desc:'Saba Estacionamento',    fecha:'11/06', monto:  2000},
+      {desc:'Parking Costanera',      fecha:'12/06', monto:  1700},
+      {desc:'Spid General Holley O8', fecha:'12/06', monto:  1790},
+      {desc:'Parking Intercontinental',fecha:'14/06',monto:  4600},
+      {desc:'Sumup*hbw Zurich',       fecha:'16/06', monto:   500},
+      {desc:'Spid General Holley O8', fecha:'18/06', monto:  2990},
+      {desc:'Lorena Romero',          fecha:'20/06', monto:  3500},
+            {desc:'Spid General Holley O8', fecha:'25/06', monto:  1980},
+      {desc:'Spid General Holley O8', fecha:'26/06', monto:  2990},
+      {desc:'Lubricentro Fernand',    fecha:'30/06', monto: 58454},
+            {desc:'Alejandro Luis Aguil',   fecha:'02/07', monto:  6800},
+    ],
+    agosto:[
+      {desc:'Paypal *uber', fecha:'05/07', monto:1766},
+      {desc:'Concesa', fecha:'06/07', monto:2822},
+      {desc:'Mercadopago *carolina', fecha:'08/07', monto:3800},
+      {desc:'Parking intercontinent', fecha:'11/07', monto:3450},
+      {desc:'Saba estacionamento', fecha:'13/07', monto:1600},
+      {desc:'Saba estacionamientos', fecha:'14/07', monto:2900},
+      {desc:'Matias vargas mira', fecha:'15/07', monto:9300},
+      {desc:'Saba estacionamientos', fecha:'15/07', monto:3250},
+      {desc:'Dayra spa', fecha:'16/07', monto:4470},
+      {desc:'Matias vargas mira', fecha:'28/07', monto:2730},
+      {desc:'Ferreteria serrano', fecha:'30/07', monto:4950},
+      {desc:'Redgloba*divapack spa', fecha:'30/07', monto:6990},
+      {desc:'Mercadopago *botichol', fecha:'30/07', monto:5550},
+            {desc:'Cv 1252', fecha:'03/08', monto:2750},
+    ],
+    sept:[
+      {desc:'Locales Y Comercio B', fecha:'06/08', monto:7700},
+      {desc:'Saba Estacionamento', fecha:'07/08', monto:1600},
+      {desc:'Matias Vargas Mira', fecha:'09/08', monto:6400},
+      {desc:'Mp *Paganichile', fecha:'11/08', monto:600},
+      {desc:'Cineplanet Webpay', fecha:'11/08', monto:12400},
+      {desc:'Saba Estacionamientos', fecha:'16/08', monto:3550},
+      {desc:'Parking Costanera', fecha:'21/08', monto:900},
+      {desc:'Mercadopago *Ricardo', fecha:'22/08', monto:19240},
+      {desc:'Saba Estacionamento', fecha:'24/08', monto:2000},
+      {desc:'Mp *Paganichile', fecha:'31/08', monto:600},
+      {desc:'Transferencia a Ahorro', fecha:'02/09', monto:20000},
+    ]
+  }
+};
+
+// ════════════════════════════════════════════════
+//  CONFIG
+// ════════════════════════════════════════════════
+const GRUPOS={
+  casa:{label:'Gastos Casa',sub:'Hogar, alimentación y servicios',   icon:'🏠',a:'#f59e0b',b:'#ef4444'},
+  emp: {label:'Empresa',   sub:'Importaciones, publicidad y logística',icon:'💼',a:'#6366f1',b:'#06b6d4'},
+  pers:{label:'Personal',  sub:'Retail, entretenimiento y deudas',   icon:'👤',a:'#10b981',b:'#3b82f6'},
+};
+// k = mes calendario; mm = número de mes (DD/MM → slice(3,5)) para filtrar por fecha real
+const MONTHS=[
+  {k:'dic',  label:'Dic 2025', mm:'12'},
+  {k:'ene',  label:'Ene 2026', mm:'01'},
+  {k:'feb',  label:'Feb 2026', mm:'02'},
+  {k:'mar',  label:'Mar 2026', mm:'03'},
+  {k:'abr',  label:'Abr 2026', mm:'04'},
+  {k:'mayo', label:'May 2026', mm:'05'},
+  {k:'junio',label:'Jun 2026', mm:'06'},
+  {k:'julio',label:'Jul 2026', mm:'07'},
+  {k:'ago',  label:'Ago 2026', mm:'08'},
+  {k:'sep',  label:'Sep 2026', mm:'09'},
+];
+const MONTH_FULL={dic:'Dic 2025',ene:'Ene 2026',feb:'Feb 2026',mar:'Mar 2026',abr:'Abr 2026',mayo:'May 2026',junio:'Jun 2026',julio:'Jul 2026',ago:'Ago 2026',sep:'Sep 2026'};
+const COLORS=['#6366f1','#06b6d4','#10b981','#f59e0b','#ef4444','#a78bfa','#38bdf8','#34d399','#fbbf24','#f87171','#818cf8','#67e8f9','#6ee7b7','#fcd34d','#fca5a5'];
+
+let landingMonth='junio', currentGroup='emp', detailMonth='junio', currentCat=null, mvMonth='ambos', abMonth='ambos';
+let pieChart=null, barChart=null;
+
+// ════════════════════════════════════════════════
+//  HELPERS
+// ════════════════════════════════════════════════
+function fm(n){return n>=1e6?'$'+(n/1e6).toFixed(1)+'M':n>=1e3?'$'+(n/1e3).toFixed(0)+'K':'$'+n;}
+function fl(n){return '$'+Math.round(n).toLocaleString('es-CL');}
+function gv(c,m){return m==='ambos'?MONTHS.reduce((s,mo)=>s+(c[mo.k]||0),0):(c[m]||0);}
+function gCats(g,m){return CATS.filter(c=>c.grupo===g).map(c=>({...c,val:gv(c,m)}));}
+function gTotal(g,m){return gCats(g,m).reduce((s,c)=>s+c.val,0);}
+function grand(m){return CATS.reduce((s,c)=>s+gv(c,m),0);}
+// Claves de facturación (internas, no cambian)
+const BILLING_KEYS=['ene','feb','mar','abr','mayo','junio','julio','agosto','sept'];
+function getTX(key,m){
+  if(!TX[key])return[];
+  const all=BILLING_KEYS.flatMap(bk=>TX[key][bk]||[]);
+  if(m==='ambos')return all;
+  const mo=MONTHS.find(mo=>mo.k===m);
+  if(!mo)return[];
+  // fechas en formato DD/MM → slice(3,5) extrae el mes
+  return all.filter(t=>t.fecha.slice(3,5)===mo.mm);
+}
+function getAbonos(m){
+  const all=BILLING_KEYS.flatMap(bk=>ABONOS[bk]||[]);
+  if(m==='ambos')return all;
+  const mo=MONTHS.find(mo=>mo.k===m);
+  if(!mo)return[];
+  return all.filter(a=>a.fecha.slice(3,5)===mo.mm);
+}
+function totalAbonos(m){return getAbonos(m).reduce((s,a)=>s+a.monto,0);}
+function showView(id){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById(id).classList.add('active');}
+
+// ════════════════════════════════════════════════
+//  LANDING
+// ════════════════════════════════════════════════
+function setLM(m,btn){landingMonth=m;document.querySelectorAll('.mmtab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderLanding();}
+function renderLanding(){
+  const m=landingMonth;
+  const gastos=grand(m), abonado=totalAbonos(m), balance=abonado-gastos;
+  document.getElementById('s-total').textContent=fm(gastos);
+  document.getElementById('s-abon').textContent=fm(abonado);
+  ['casa','emp','pers'].forEach(g=>{
+    const t=gTotal(g,m);
+    document.getElementById('gc-'+g).textContent=fm(t);
+    document.getElementById('s-'+g).textContent=fm(t);
+    const cats=gCats(g,m).filter(c=>c.val>0).sort((a,b)=>b.val-a.val).slice(0,4);
+    document.getElementById('ch-'+g).innerHTML=cats.map(c=>`<span class="chip">${c.icon} ${c.label}</span>`).join('');
+  });
+  // abonos card
+  const abn=getAbonos(m);
+  document.getElementById('ab-card-total').textContent=fm(abonado);
+  document.getElementById('ab-card-n').textContent=abn.length+' pagos';
+  const PERIODS={dic:'Diciembre 2025',ene:'Enero 2026',feb:'Febrero 2026',mar:'Marzo 2026',abr:'Abril 2026',mayo:'Mayo 2026',junio:'Junio 2026',julio:'Julio 2026 (parcial)',ambos:'Dic 2025–Jul 2026'};
+  document.getElementById('ab-card-sub').textContent=PERIODS[m]||m;
+  // balance bar
+  const maxV=Math.max(gastos,abonado)||1;
+  document.getElementById('bal-g').style.width=(gastos/maxV*100)+'%';
+  document.getElementById('bal-a').style.width=(abonado/maxV*100)+'%';
+  const netEl=document.getElementById('bal-net');
+  netEl.textContent=(balance>=0?'+':'')+fm(balance);
+  netEl.className='bal-val '+(balance>=0?'bal-pos':'bal-neg');
+}
+
+// ════════════════════════════════════════════════
+//  GROUP DETAIL
+// ════════════════════════════════════════════════
+function openGroup(g){
+  currentGroup=g;detailMonth=landingMonth==='ambos'?'ambos':landingMonth;
+  const G=GRUPOS[g];
+  document.getElementById('d-bi').textContent=G.icon;
+  document.getElementById('d-bi').style.background=`linear-gradient(135deg,${G.a}25,${G.b}25)`;
+  document.getElementById('d-title').textContent=G.label;
+  document.getElementById('d-title').style.color=G.a;
+  document.getElementById('d-sub').textContent=G.sub;
+  setActiveDTab(detailMonth);showView('detail');renderDetail();
+}
+function setActiveDTab(m){
+  [...MONTHS.map(mo=>mo.k),'ambos'].forEach(k=>{const t=document.getElementById('dt-'+k);if(t){t.classList.remove('active');t.style.cssText='';}});
+  const t=document.getElementById('dt-'+m);const G=GRUPOS[currentGroup];
+  if(t){t.classList.add('active');t.style.background=`linear-gradient(135deg,${G.a},${G.b})`;t.style.color='#fff';t.style.borderColor='transparent';}
+}
+function setDM(m){detailMonth=m;setActiveDTab(m);renderDetail();}
+function renderDetail(){
+  const G=GRUPOS[currentGroup],m=detailMonth;
+  const cats=gCats(currentGroup,m).filter(c=>c.val>0).sort((a,b)=>b.val-a.val);
+  const total=cats.reduce((s,c)=>s+c.val,0);const gt=grand(m);
+  document.getElementById('d-tot').textContent=fm(total);
+  document.getElementById('d-tot-s').textContent=m==='ambos'?'Todos los meses':(MONTH_FULL[m]+' 2026');
+  document.getElementById('d-top').textContent=cats[0]?cats[0].icon+' '+cats[0].label:'—';
+  document.getElementById('d-top-a').textContent=cats[0]?fl(cats[0].val):'—';
+  document.getElementById('d-nc').textContent=cats.length;
+  document.getElementById('d-pct').textContent=gt>0?(total/gt*100).toFixed(1)+'%':'—';
+  document.getElementById('d-pct-s').textContent=`sobre total ${m==='ambos'?'todos los meses':(MONTH_FULL[m]||m)}`;
+  {const el=document.getElementById('d-avgn'); if(el)el.textContent='('+avgMeses().length+' meses cerrados, sin '+((MONTHS.find(mo=>mo.k===currentMonthKey())||{}).label||'el mes en curso')+')';}
+  document.getElementById('d-catlist').innerHTML=cats.map(c=>{
+    const pct=total>0?(c.val/total*100):0;
+    const ci=COLORS[CATS.findIndex(x=>x.key===c.key)%COLORS.length];
+    return`<div class="cat-row" onclick="openMovimientos('${c.key}')">
+      <span class="ci">${c.icon}</span><span class="cn">${c.label}</span>
+      <div class="bw"><div class="bb"><div class="bf" style="width:${pct.toFixed(0)}%;background:${ci}"></div></div></div>
+      <span class="cp">${pct.toFixed(0)}%</span><span class="ca">${fm(c.val)}</span><span class="cavg" title="Promedio mensual sobre ${avgMeses().length} meses cerrados (sin el mes en curso)">⌀ ${fm(avgCat(c.key))}</span><span class="carr">›</span>
+    </div>`;
+  }).join('');
+  if(pieChart){pieChart.destroy();pieChart=null;}
+  pieChart=new Chart(document.getElementById('d-pie'),{
+    type:'doughnut',
+    data:{labels:cats.map(c=>c.label),datasets:[{data:cats.map(c=>c.val),backgroundColor:cats.map((_,i)=>COLORS[i%COLORS.length]),borderWidth:0,hoverOffset:6}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'64%',plugins:{legend:{position:'bottom',labels:{color:'#6b7194',font:{size:10},boxWidth:10,padding:7}},tooltip:{backgroundColor:'#161925',borderColor:'#272d45',borderWidth:1,titleColor:'#eaecf4',bodyColor:'#6b7194',callbacks:{label:ctx=>` ${fm(ctx.parsed)} (${(ctx.parsed/total*100).toFixed(1)}%)`}}}}
+  });
+  if(barChart){barChart.destroy();barChart=null;}
+  const grpCats=CATS.filter(c=>c.grupo===currentGroup&&MONTHS.some(mo=>(c[mo.k]||0)>0));
+  const allKeys=grpCats.map(c=>c.key);
+  const mColors=['#818cf8','#67e8f9','#6ee7b7','#fcd34d','#fb923c','#06b6d4'];
+  const _cmk=currentMonthKey();
+  const _exclIdx=MONTHS.map((mo,i)=>mo.k===_cmk?i:-1).filter(i=>i>=0);
+  barChart=new Chart(document.getElementById('d-bar'),{
+    type:'bar',
+    plugins:[avgLinePlugin],
+    data:{labels:allKeys.map(k=>CATS.find(c=>c.key===k)?.label),
+      datasets:MONTHS.map((mo,i)=>({
+        label:mo.label,
+        data:allKeys.map(k=>(CATS.find(c=>c.key===k)?.[mo.k]||0)),
+        backgroundColor:mColors[i%mColors.length]+'bb',
+        borderRadius:3,borderSkipped:false
+      }))
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      onHover:(e,el)=>{e.native.target.style.cursor=el.length?'pointer':'default';},
+      onClick:(e,els)=>{
+        if(!els.length){closeBarDetail();return;}
+        const el=els[0];
+        showBarDetail(allKeys[el.index], MONTHS[el.datasetIndex].k);
+      },
+      plugins:{avgLine:{enabled:true,excludeIdx:_exclIdx},legend:{labels:{color:'#6b7194',font:{size:10}}},tooltip:{backgroundColor:'#161925',borderColor:'#272d45',borderWidth:1,titleColor:'#eaecf4',bodyColor:'#6b7194',callbacks:{label:ctx=>` ${ctx.dataset.label}: ${fm(ctx.raw)}`,afterLabel:()=>'clic para ver detalle'}}},scales:{x:{ticks:{color:'#6b7194',font:{size:9},maxRotation:30},grid:{color:'#272d45'}},y:{ticks:{color:'#6b7194',font:{size:10},callback:v=>fm(v)},grid:{color:'#272d45'}}}}
+  });
+  closeBarDetail();
+}
+
+
+
+// ── promedio mensual de una categoría: todos los meses salvo el en curso ──
+function avgMeses(){ const cmk=currentMonthKey(); return MONTHS.filter(mo=>mo.k!==cmk); }
+function avgCat(catKey){
+  const c=CATS.find(x=>x.key===catKey); if(!c)return 0;
+  const ms=avgMeses(); if(!ms.length)return 0;
+  return ms.reduce((s,mo)=>s+(c[mo.k]||0),0)/ms.length;
+}
+
+// ── plugin: línea de promedio por categoría (excluye el mes en curso) ──
+function currentMonthKey(){
+  const n=new Date(), mm=String(n.getMonth()+1).padStart(2,'0'), yy=n.getFullYear();
+  const mo=MONTHS.find(m=>m.mm===mm && (m.label||'').includes(yy));
+  return mo?mo.k:(MONTHS.find(m=>m.mm===mm)||{}).k;
+}
+const avgLinePlugin={
+  id:'avgLine',
+  afterDatasetsDraw(chart){
+    const cfg=chart.options.plugins.avgLine;
+    if(!cfg||!cfg.enabled)return;
+    const ctx=chart.ctx, yS=chart.scales.y, excl=cfg.excludeIdx||[];
+    for(let i=0;i<chart.data.labels.length;i++){
+      let x0=Infinity,x1=-Infinity,sum=0,n=0;
+      chart.data.datasets.forEach((ds,di)=>{
+        if(!chart.isDatasetVisible(di))return;
+        const el=chart.getDatasetMeta(di).data[i];
+        if(el){x0=Math.min(x0,el.x-el.width/2);x1=Math.max(x1,el.x+el.width/2);}
+        if(excl.indexOf(di)>=0)return;
+        sum+=(ds.data[i]||0); n++;
+      });
+      if(!n||x0===Infinity)continue;
+      const avg=sum/n; if(avg<=0)continue;
+      const y=yS.getPixelForValue(avg);
+      if(y<yS.top||y>yS.bottom)continue;
+      ctx.save();
+      ctx.strokeStyle='#f87171';ctx.lineWidth=2;ctx.setLineDash([6,4]);
+      ctx.beginPath();ctx.moveTo(x0-3,y);ctx.lineTo(x1+3,y);ctx.stroke();
+      ctx.setLineDash([]);
+      const txt=fm(avg);
+      ctx.font='600 10px system-ui,-apple-system,sans-serif';
+      const w=ctx.measureText(txt).width, cx=(x0+x1)/2;
+      ctx.fillStyle='#161925';ctx.strokeStyle='#f87171';ctx.lineWidth=1;
+      ctx.beginPath();ctx.rect(cx-w/2-4,y-15,w+8,13);ctx.fill();ctx.stroke();
+      ctx.fillStyle='#f87171';ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText(txt,cx,y-8.5);
+      ctx.restore();
+    }
+  }
+};
+
+// ── detalle desplegable al pinchar una barra ──
+function closeBarDetail(){const d=document.getElementById('d-bardetail');if(d)d.innerHTML='';}
+function showBarDetail(catKey, monthKey){
+  const box=document.getElementById('d-bardetail'); if(!box)return;
+  const cat=CATS.find(c=>c.key===catKey); if(!cat)return;
+  const mo=MONTHS.find(m=>m.k===monthKey);
+  const ico=COLORS[CATS.findIndex(c=>c.key===catKey)%COLORS.length];
+  const txs=getTX(catKey,monthKey).slice().sort((a,b)=>{
+    const A=a.fecha.slice(3,5)+a.fecha.slice(0,2), B=b.fecha.slice(3,5)+b.fecha.slice(0,2);
+    return A===B ? b.monto-a.monto : (A<B?-1:1);
+  });
+  const total=txs.reduce((s,t)=>s+t.monto,0);
+  const barra=cat[monthKey]||0;
+  const falta=barra-total;
+  const aviso = Math.abs(falta)>1
+    ? `<div class="bd-warn">⚠️ El gráfico marca ${fl(barra)} para este mes, pero el detalle cargado suma ${fl(total)}. ${falta>0?'Faltan '+fl(falta)+' en movimientos':'Hay '+fl(-falta)+' de más'} — los meses anteriores a julio se cargaron desde los totales de la cartola y el detalle quedó incompleto.</div>`
+    : '';
+  const rows = txs.length
+    ? txs.map(t=>`<div class="bd-row"><div class="bd-nm">${t.desc}</div><div class="bd-f">${t.fecha}</div><div class="bd-m${t.monto<0?' neg':''}">${t.monto<0?'- '+fl(Math.abs(t.monto)):fl(t.monto)}</div></div>`).join('')
+    : `<div class="bd-empty">Sin movimientos registrados para ${cat.label} en ${mo?mo.label:monthKey}</div>`;
+  box.innerHTML=`<div class="bd-box">
+      <div class="bd-head">
+        <div class="bd-ico" style="background:${ico}20;color:${ico}">${cat.icon}</div>
+        <div><div class="bd-ttl">${cat.label}</div><div class="bd-sub">${mo?mo.label:monthKey} · ${txs.length} movimiento${txs.length===1?'':'s'}</div></div>
+        <div class="bd-tot"><b>${fl(total)}</b><span class="bd-sub">total</span></div>
+        <span class="bd-x" onclick="closeBarDetail()" title="Cerrar">✕</span>
+      </div>
+      ${aviso}
+      <div class="bd-list">${rows}</div>
+    </div>`;
+  box.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+// ════════════════════════════════════════════════
+//  MOVIMIENTOS
+// ════════════════════════════════════════════════
+function openMovimientos(catKey){
+  currentCat=catKey;mvMonth=detailMonth==='ambos'?'ambos':detailMonth;
+  const cat=CATS.find(c=>c.key===catKey);const G=GRUPOS[currentGroup];
+  document.getElementById('mv-bc-grupo').textContent=G.label;
+  document.getElementById('mv-bc-cat').textContent=cat.label;
+  document.getElementById('mv-icon').textContent=cat.icon;
+  document.getElementById('mv-icon').style.background=`linear-gradient(135deg,${G.a}25,${G.b}25)`;
+  document.getElementById('mv-title').textContent=cat.label;
+  document.getElementById('mv-title').style.color=G.a;
+  document.getElementById('mv-sub').textContent=G.label+' · '+G.sub;
+  setActiveMVTab(mvMonth,G);
+  document.getElementById('mv-search').value='';
+  showView('movimientos');renderTxList();
+}
+function setActiveMVTab(m,G){
+  if(!G)G=GRUPOS[currentGroup];
+  [...MONTHS.map(mo=>mo.k),'ambos'].forEach(k=>{const t=document.getElementById('mv-t-'+k);if(t){t.classList.remove('active');t.style.cssText='';}});
+  const t=document.getElementById('mv-t-'+m);
+  if(t){t.classList.add('active');t.style.background=`linear-gradient(135deg,${G.a},${G.b})`;t.style.color='#fff';t.style.borderColor='transparent';}
+}
+function setMVMonth(m){mvMonth=m;setActiveMVTab(m);renderTxList();}
+function renderTxList(){
+  const q=(document.getElementById('mv-search').value||'').toLowerCase();
+  let txs=getTX(currentCat,mvMonth);
+  if(q)txs=txs.filter(t=>t.desc.toLowerCase().includes(q)||t.fecha.includes(q));
+  const pos=txs.filter(t=>t.monto>0);
+  const total=pos.reduce((s,t)=>s+t.monto,0);
+  document.getElementById('mv-ktotal').textContent=fl(total);
+  document.getElementById('mv-kn').textContent=txs.length;
+  document.getElementById('mv-kavg').textContent=fl(pos.length?total/pos.length:0);
+  document.getElementById('mv-kmax').textContent=fl(pos.length?Math.max(...pos.map(t=>t.monto)):0);
+  const cat=CATS.find(c=>c.key===currentCat);
+  const ico=COLORS[CATS.findIndex(c=>c.key===currentCat)%COLORS.length];
+  if(!txs.length){document.getElementById('mv-rows').innerHTML=`<div class="no-results">Sin movimientos${q?' para esta búsqueda':' en este período'}</div>`;return;}
+  document.getElementById('mv-rows').innerHTML=txs.map(t=>`
+    <div class="tx-row">
+      <div class="tx-desc"><div class="tx-ico" style="background:${ico}20;color:${ico}">${cat.icon}</div>
+        <div><div class="tx-nm">${t.desc}</div></div></div>
+      <div class="tx-fecha">${t.fecha}</div>
+      <div class="tx-monto${t.monto<0?' neg':''}">${t.monto<0?'- '+fl(Math.abs(t.monto)):fl(t.monto)}</div>
+    </div>`).join('');
+}
+
+// ════════════════════════════════════════════════
+//  ABONOS VIEW
+// ════════════════════════════════════════════════
+function openAbonos(){
+  abMonth=landingMonth==='ambos'?'ambos':landingMonth;
+  setABTab(abMonth);showView('abonos');renderAbonos();
+}
+function setABTab(m){
+  [...MONTHS.map(mo=>mo.k),'ambos'].forEach(k=>{const t=document.getElementById('ab-t-'+k);if(t){t.classList.remove('active');t.style.cssText='';}});
+  const t=document.getElementById('ab-t-'+m);
+  if(t){t.classList.add('active');}
+}
+function setABMonth(m){abMonth=m;setABTab(m);renderAbonos();}
+function renderAbonos(){
+  const m=abMonth;
+  const txs=getAbonos(m);
+  const total=txs.reduce((s,a)=>s+a.monto,0);
+  const max=txs.length?Math.max(...txs.map(a=>a.monto)):0;
+  const avg=txs.length?total/txs.length:0;
+  const gastos=grand(m);
+  const balance=total-gastos;
+  document.getElementById('ab-ktotal').textContent=fl(total);
+  document.getElementById('ab-kn').textContent=txs.length;
+  document.getElementById('ab-kavg').textContent=fl(avg);
+  document.getElementById('ab-kmax').textContent=fl(max);
+  document.getElementById('ab-kgastos').textContent=fl(gastos);
+  const balEl=document.getElementById('ab-kbal');
+  balEl.textContent=(balance>=0?'+':'')+fl(balance);
+  balEl.className='kv '+(balance>=0?'pos':'neg');
+  // vs panel
+  const meses=MONTHS;
+  const maxVs=Math.max(...meses.map(x=>Math.max(grand(x.k),totalAbonos(x.k))))||1;
+  document.getElementById('ab-vs-rows').innerHTML=meses.map(x=>{
+    const g=grand(x.k),a=totalAbonos(x.k);
+    const gPct=(g/maxVs*100).toFixed(0),aPct=(a/maxVs*100).toFixed(0);
+    return`<div style="margin-bottom:16px;">
+      <div style="font-size:.78rem;font-weight:600;color:var(--text);margin-bottom:8px;">${x.label}</div>
+      <div class="vs-row"><span class="vs-label">💸 Gastos</span>
+        <div class="vs-bar-track"><div class="vs-bar-fill" style="width:${gPct}%;background:linear-gradient(90deg,#ef4444,#f59e0b)"></div></div>
+        <span class="vs-val" style="color:#f87171">${fm(g)}</span></div>
+      <div class="vs-row"><span class="vs-label">💚 Abonado</span>
+        <div class="vs-bar-track"><div class="vs-bar-fill" style="width:${aPct}%;background:linear-gradient(90deg,#22c55e,#16a34a)"></div></div>
+        <span class="vs-val" style="color:#4ade80">${fm(a)}</span></div>
+    </div>`;
+  }).join('');
+  // tx list
+  document.getElementById('ab-rows').innerHTML=txs.map((t,i)=>`
+    <div class="abtx-row">
+      <div class="abtx-desc"><div class="abtx-ico">💚</div>
+        <div><div class="abtx-nm">${t.desc} #${i+1}</div></div></div>
+      <div class="abtx-fecha">${t.fecha}</div>
+      <div class="abtx-monto">${fl(t.monto)}</div>
+    </div>`).join('');
+}
+
+// ════════════════════════════════════════════════
+//  MODAL
+// ════════════════════════════════════════════════
+function openModal(){
+  document.getElementById('modal-rows').innerHTML=CATS.map(c=>`
+    <div class="ecrow" id="ecrow-${c.key}">
+      <span style="font-size:1rem">${c.icon}</span><span class="ecn">${c.label}</span>
+      <div class="ecbtns">
+        <button class="ecb ${c.grupo==='casa'?'sc':''}" onclick="assignGroup('${c.key}','casa',this)">🏠 Casa</button>
+        <button class="ecb ${c.grupo==='emp'?'se':''}"  onclick="assignGroup('${c.key}','emp',this)">💼 Empresa</button>
+        <button class="ecb ${c.grupo==='pers'?'sp':''}" onclick="assignGroup('${c.key}','pers',this)">👤 Personal</button>
+      </div>
+    </div>`).join('');
+  document.getElementById('modal').classList.add('open');
+}
+function assignGroup(key,g,btn){
+  CATS.find(c=>c.key===key).grupo=g;
+  document.getElementById('ecrow-'+key).querySelectorAll('.ecb').forEach(b=>{b.className='ecb';});
+  btn.className=`ecb ${{casa:'sc',emp:'se',pers:'sp'}[g]}`;
+  renderLanding();
+}
+function closeModal(){document.getElementById('modal').classList.remove('open');renderLanding();}
+
+// ════════════════════════════════════════════════
+//  NAV
+// ════════════════════════════════════════════════
+function goHome(){showView('landing');renderLanding();}
+function goDetail(){showView('detail');renderDetail();}
+
+// ════════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded',renderLanding);
+document.getElementById('modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal();});
+</script>
+</body>
+</html>
