@@ -254,6 +254,14 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 .bd-filt{color:#fcd34d}
 .bd-clr{margin-left:7px;cursor:pointer;color:#818cf8;text-decoration:underline}
 .bd-clr:hover{color:#a5b4fc}
+
+.tx-head .th-s{cursor:pointer;user-select:none;transition:color .15s}
+.tx-head .th-s:hover{color:var(--text)}
+.tx-head .th-s.on{color:#818cf8}
+.tx-head .th-s i{font-style:normal;opacity:.65;font-size:.66rem;margin-left:2px}
+.tx-row .tx-desc{display:flex;align-items:center;gap:10px}
+.tx-row .bd-ex{margin-left:2px}
+.mv-cnt{padding:10px 4px 0;font-size:.76rem;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -419,12 +427,13 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
       <button class="mv-mtab active" id="mv-t-ambos" onclick="setMVMonth('ambos')">Todo</button>
     </div>
     <div class="mv-search">
-      <input type="text" id="mv-search" placeholder="🔍  Buscar movimiento…" oninput="renderTxList()">
+      <input type="text" id="mv-search" placeholder="🔍  Buscar…  usa -palabra para excluir (ej: apple  -canva)" oninput="renderTxList()">
     </div>
     <div class="tx-list">
-      <div class="tx-head"><span>Descripción</span><span>Fecha</span><span class="th-r">Monto</span></div>
+      <div class="tx-head"><span id="mv-h-desc"  class="th-s" onclick="mvSort('desc')">Descripción <i>⇅</i></span><span id="mv-h-fecha" class="th-s" onclick="mvSort('fecha')">Fecha <i>⇅</i></span><span id="mv-h-monto" class="th-s th-r" onclick="mvSort('monto')">Monto <i>⇅</i></span></div>
       <div id="mv-rows"></div>
     </div>
+    <div id="mv-cnt" class="mv-cnt"></div>
   </div>
 </div>
 
@@ -2592,12 +2601,16 @@ function bdMatch(t,q){
   }
   return true;
 }
+function mesIdx(f){ const i=MONTHS.findIndex(m=>m.mm===f.slice(3,5)); return i; }
 function bdCmp(a,b,k,d){
   let r=0;
   if(k==='desc') r=a.desc.localeCompare(b.desc,'es',{sensitivity:'base'});
   else if(k==='monto') r=a.monto-b.monto;
-  else { const A=a.fecha.slice(3,5)+a.fecha.slice(0,2), B=b.fecha.slice(3,5)+b.fecha.slice(0,2);
-         r = A===B ? a.monto-b.monto : (A<B?-1:1); }
+  else { // cronológico real: Dic 2025 va primero, no último
+         const ma=mesIdx(a.fecha), mb=mesIdx(b.fecha);
+         if(ma!==mb) r=ma-mb;
+         else { const da=+a.fecha.slice(0,2), db=+b.fecha.slice(0,2);
+                r = da!==db ? da-db : a.monto-b.monto; } }
   return r*d;
 }
 function bdSort(k){ if(bdS.sk===k)bdS.sd*=-1; else {bdS.sk=k;bdS.sd=1;} bdRender(); }
@@ -2689,82 +2702,48 @@ function setActiveMVTab(m,G){
   if(t){t.classList.add('active');t.style.background=`linear-gradient(135deg,${G.a},${G.b})`;t.style.color='#fff';t.style.borderColor='transparent';}
 }
 function setMVMonth(m){mvMonth=m;setActiveMVTab(m);renderTxList();}
+let mvSK='fecha', mvSD=1;
+function mvSort(k){ if(mvSK===k)mvSD*=-1; else {mvSK=k;mvSD=1;} renderTxList(); }
+function mvExcluir(desc){
+  const el=document.getElementById('mv-search'); if(!el)return;
+  const tok='-'+String(desc).toLowerCase().split(/\s+/)[0];
+  if(!el.value.toLowerCase().includes(tok)) el.value=(el.value+' '+tok).trim();
+  renderTxList();
+}
+function mvLimpiar(){ const el=document.getElementById('mv-search'); if(el)el.value=''; renderTxList(); }
+
 function renderTxList(){
-  const q=(document.getElementById('mv-search').value||'').toLowerCase();
-  let txs=getTX(currentCat,mvMonth);
-  if(q)txs=txs.filter(t=>t.desc.toLowerCase().includes(q)||t.fecha.includes(q));
+  const q=(document.getElementById('mv-search').value||'');
+  const all=getTX(currentCat,mvMonth);
+  let txs=all.filter(t=>bdMatch(t,q)).sort((a,b)=>bdCmp(a,b,mvSK,mvSD));
   const pos=txs.filter(t=>t.monto>0);
   const total=pos.reduce((s,t)=>s+t.monto,0);
   document.getElementById('mv-ktotal').textContent=fl(total);
   document.getElementById('mv-kn').textContent=txs.length;
   document.getElementById('mv-kavg').textContent=fl(pos.length?total/pos.length:0);
   document.getElementById('mv-kmax').textContent=fl(pos.length?Math.max(...pos.map(t=>t.monto)):0);
+  ['desc','fecha','monto'].forEach(k=>{
+    const h=document.getElementById('mv-h-'+k); if(!h)return;
+    h.classList.toggle('on',mvSK===k);
+    h.querySelector('i').textContent = mvSK===k ? (mvSD===1?'▲':'▼') : '⇅';
+  });
+  const cnt=document.getElementById('mv-cnt');
+  if(cnt) cnt.innerHTML = txs.length===all.length
+    ? `${all.length} movimiento${all.length===1?'':'s'}`
+    : `<span class="bd-filt">${txs.length} de ${all.length}</span> · <b>${fl(txs.reduce((s,t)=>s+t.monto,0))}</b> <span class="bd-clr" onclick="mvLimpiar()">limpiar filtro</span>`;
   const cat=CATS.find(c=>c.key===currentCat);
   const ico=COLORS[CATS.findIndex(c=>c.key===currentCat)%COLORS.length];
-  if(!txs.length){document.getElementById('mv-rows').innerHTML=`<div class="no-results">Sin movimientos${q?' para esta búsqueda':' en este período'}</div>`;return;}
+  if(!txs.length){document.getElementById('mv-rows').innerHTML=`<div class="no-results">Sin movimientos${q?' para este filtro':' en este período'}</div>`;return;}
   document.getElementById('mv-rows').innerHTML=txs.map(t=>`
     <div class="tx-row">
       <div class="tx-desc"><div class="tx-ico" style="background:${ico}20;color:${ico}">${cat.icon}</div>
-        <div><div class="tx-nm">${t.desc}</div></div></div>
+        <div><div class="tx-nm">${t.desc}</div></div>
+        <span class="bd-ex" title="Excluir" onclick="event.stopPropagation();mvExcluir('${String(t.desc).replace(/'/g,"\\'")}')">⊘</span></div>
       <div class="tx-fecha">${t.fecha}</div>
       <div class="tx-monto${t.monto<0?' neg':''}">${t.monto<0?'- '+fl(Math.abs(t.monto)):fl(t.monto)}</div>
     </div>`).join('');
 }
 
-// ════════════════════════════════════════════════
-//  ABONOS VIEW
-// ════════════════════════════════════════════════
-function openAbonos(){
-  abMonth=landingMonth==='ambos'?'ambos':landingMonth;
-  setABTab(abMonth);showView('abonos');renderAbonos();
-}
-function setABTab(m){
-  [...MONTHS.map(mo=>mo.k),'ambos'].forEach(k=>{const t=document.getElementById('ab-t-'+k);if(t){t.classList.remove('active');t.style.cssText='';}});
-  const t=document.getElementById('ab-t-'+m);
-  if(t){t.classList.add('active');}
-}
-function setABMonth(m){abMonth=m;setABTab(m);renderAbonos();}
-function renderAbonos(){
-  const m=abMonth;
-  const txs=getAbonos(m);
-  const total=txs.reduce((s,a)=>s+a.monto,0);
-  const max=txs.length?Math.max(...txs.map(a=>a.monto)):0;
-  const avg=txs.length?total/txs.length:0;
-  const gastos=grand(m);
-  const balance=total-gastos;
-  document.getElementById('ab-ktotal').textContent=fl(total);
-  document.getElementById('ab-kn').textContent=txs.length;
-  document.getElementById('ab-kavg').textContent=fl(avg);
-  document.getElementById('ab-kmax').textContent=fl(max);
-  document.getElementById('ab-kgastos').textContent=fl(gastos);
-  const balEl=document.getElementById('ab-kbal');
-  balEl.textContent=(balance>=0?'+':'')+fl(balance);
-  balEl.className='kv '+(balance>=0?'pos':'neg');
-  // vs panel
-  const meses=MONTHS;
-  const maxVs=Math.max(...meses.map(x=>Math.max(grand(x.k),totalAbonos(x.k))))||1;
-  document.getElementById('ab-vs-rows').innerHTML=meses.map(x=>{
-    const g=grand(x.k),a=totalAbonos(x.k);
-    const gPct=(g/maxVs*100).toFixed(0),aPct=(a/maxVs*100).toFixed(0);
-    return`<div style="margin-bottom:16px;">
-      <div style="font-size:.78rem;font-weight:600;color:var(--text);margin-bottom:8px;">${x.label}</div>
-      <div class="vs-row"><span class="vs-label">💸 Gastos</span>
-        <div class="vs-bar-track"><div class="vs-bar-fill" style="width:${gPct}%;background:linear-gradient(90deg,#ef4444,#f59e0b)"></div></div>
-        <span class="vs-val" style="color:#f87171">${fm(g)}</span></div>
-      <div class="vs-row"><span class="vs-label">💚 Abonado</span>
-        <div class="vs-bar-track"><div class="vs-bar-fill" style="width:${aPct}%;background:linear-gradient(90deg,#22c55e,#16a34a)"></div></div>
-        <span class="vs-val" style="color:#4ade80">${fm(a)}</span></div>
-    </div>`;
-  }).join('');
-  // tx list
-  document.getElementById('ab-rows').innerHTML=txs.map((t,i)=>`
-    <div class="abtx-row">
-      <div class="abtx-desc"><div class="abtx-ico">💚</div>
-        <div><div class="abtx-nm">${t.desc} #${i+1}</div></div></div>
-      <div class="abtx-fecha">${t.fecha}</div>
-      <div class="abtx-monto">${fl(t.monto)}</div>
-    </div>`).join('');
-}
 
 // ════════════════════════════════════════════════
 //  MODAL
