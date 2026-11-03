@@ -271,7 +271,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
   <div class="lh">
     <h1>💳 Gastos CMR Falabella</h1>
     <p>Finanzas personales · Tarjeta de crédito</p>
-    <span class="per">📅 Dic 2025–Sep 2026</span>
+    <span class="per">📅 Dic 2025–Oct 2026</span>
   </div>
   <div class="mmtabs">
     <button class="mmtab"        onclick="setLM('dic',this)">Dic 2025</button>
@@ -284,6 +284,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
     <button class="mmtab"        onclick="setLM('julio',this)">Jul 2026</button>
     <button class="mmtab"        onclick="setLM('ago',this)">Ago 2026</button>
     <button class="mmtab"        onclick="setLM('sep',this)">Sep 2026</button>
+    <button class="mmtab"        onclick="setLM('oct',this)">Oct 2026</button>
     <button class="mmtab"        onclick="setLM('ambos',this)">Todo</button>
   </div>
   <div class="strip">
@@ -364,6 +365,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
     <button class="dtab" id="dt-julio" onclick="setDM('julio')">Jul 2026</button>
     <button class="dtab" id="dt-ago" onclick="setDM('ago')">Ago 2026</button>
     <button class="dtab" id="dt-sep" onclick="setDM('sep')">Sep 2026</button>
+    <button class="dtab" id="dt-oct" onclick="setDM('oct')">Oct 2026</button>
     <button class="dtab active" id="dt-ambos" onclick="setDM('ambos')">Todo</button>
   </div>
   <div class="db">
@@ -424,6 +426,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
       <button class="mv-mtab" id="mv-t-julio" onclick="setMVMonth('julio')">Jul</button>
       <button class="mv-mtab" id="mv-t-ago" onclick="setMVMonth('ago')">Ago</button>
       <button class="mv-mtab" id="mv-t-sep" onclick="setMVMonth('sep')">Sep</button>
+      <button class="mv-mtab" id="mv-t-oct" onclick="setMVMonth('oct')">Oct</button>
       <button class="mv-mtab active" id="mv-t-ambos" onclick="setMVMonth('ambos')">Todo</button>
     </div>
     <div class="mv-search">
@@ -470,6 +473,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
       <button class="ab-mtab" id="ab-t-julio" onclick="setABMonth('julio')">Jul 2026</button>
       <button class="ab-mtab" id="ab-t-ago" onclick="setABMonth('ago')">Ago 2026</button>
       <button class="ab-mtab" id="ab-t-sep" onclick="setABMonth('sep')">Sep 2026</button>
+      <button class="ab-mtab" id="ab-t-oct" onclick="setABMonth('oct')">Oct 2026</button>
       <button class="ab-mtab active" id="ab-t-ambos" onclick="setABMonth('ambos')">Todo</button>
     </div>
     <div class="abtx-list">
@@ -497,32 +501,32 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 // Claves = mes calendario real de los cargos (no período de facturación)
 // dic=Dic2025, ene=Ene2026 … julio=Jul2026 (parcial: 01–04/07)
 const CATS = [
-  { key:'importaciones', label:'Alibaba / Proveedores', icon:'📦', dic:18451300, ene:13421018, feb: 4552385, mar:11090916, abr: 6357958, mayo:16414881, junio: 7088761, julio: 8406051, ago: 5652021, sep:  846278, grupo:'emp' },
-  { key:'aliexpress', label:'AliExpress', icon:'🌐', dic: 1038700, ene:  238982, feb:  247615, mar:  709084, abr:  295557, mayo: 1785741, junio: 1080958, julio: 1139362, ago:  314783, sep:  270587, grupo:'emp' },
-  { key:'cuotas', label:'Cuotas / Reestructuración', icon:'💳', dic: 1829815, ene: 2327671, feb: 2328507, mar: 2328508, abr: 2327671, mayo: 2327675, junio: 1747264, julio: 1747270, ago:  991956, sep:       0, grupo:'emp' },
-  { key:'publicidad', label:'Publicidad Digital', icon:'📣', dic: 2100000, ene: 1900000, feb: 1900000, mar: 1665379, abr: 1174565, mayo: 1842189, junio: 3106193, julio: 4314613, ago: 2791948, sep:  360000, grupo:'emp' },
-  { key:'courier', label:'Courier / Envíos', icon:'🚚', dic:  351096, ene:  350000, feb:  300000, mar:  350000, abr:  156400, mayo:  361347, junio:  178173, julio:  352200, ago:  277880, sep:    9120, grupo:'emp' },
-  { key:'retail', label:'Retail / Tiendas', icon:'🛍️', dic:  439970, ene:  100000, feb:   80000, mar:  231172, abr:  102910, mayo:  685053, junio:  191660, julio:   78459, ago:     616, sep:    4000, grupo:'pers' },
-  { key:'gobimpuestos', label:'Gobierno / Impuestos', icon:'🏛️', dic: 1667933, ene:   66642, feb:       0, mar:       0, abr:       0, mayo: 1788066, junio:  179815, julio:  578266, ago:   32769, sep:       0, grupo:'emp' },
-  { key:'compras_empresa', label:'Compras Empresa', icon:'🏢', dic:  566666, ene:  566666, feb:  566666, mar: 1102751, abr:  566666, mayo: 1590570, junio:  668065, julio:  914459, ago: 1050114, sep:       0, grupo:'emp' },
-  { key:'prov_local', label:'Proveedor Local', icon:'🏪', dic:   39448, ene:       0, feb:       0, mar:   84000, abr:  143525, mayo:       0, junio:       0, julio:       0, ago:  275454, sep:       0, grupo:'emp' },
-  { key:'telecom', label:'Telefonía', icon:'📡', dic:   28990, ene:   57980, feb:    6370, mar:       0, abr:       0, mayo:   28600, junio:   31242, julio:   62136, ago:   64343, sep:       0, grupo:'emp' },
-  { key:'onlineshopping', label:'Online Shopping', icon:'🛒', dic:  513257, ene:  253138, feb:  200000, mar:  791134, abr:  556756, mayo:  567599, junio:  368849, julio:  105655, ago:       0, sep:       0, grupo:'emp' },
-  { key:'digital', label:'Digital / Suscripc.', icon:'💻', dic:  106150, ene:  163366, feb:  179140, mar:  300306, abr:  373280, mayo:  183446, junio:  142124, julio:  197175, ago:  283626, sep:   59318, grupo:'pers' },
-  { key:'supermercado', label:'Supermercado', icon:'🥦', dic:  299331, ene:  344738, feb:  262680, mar:  314209, abr:  245178, mayo:  417047, junio:  382367, julio:  607595, ago:  262688, sep:   12990, grupo:'casa' },
-  { key:'restaurantes', label:'Restaurantes / Cafés', icon:'🍽️', dic:  409990, ene:  311686, feb:   44800, mar:   22530, abr:  135175, mayo:  117346, junio:   33550, julio:   72140, ago:   59326, sep:       0, grupo:'casa' },
-  { key:'combustible', label:'Combustible', icon:'⛽', dic:  185630, ene:  207818, feb:   91182, mar:   51129, abr:  246316, mayo:  131256, junio:  220026, julio:  132563, ago:  161901, sep:       0, grupo:'pers' },
-  { key:'snack', label:'Snack', icon:'☕', dic:    8500, ene:    7840, feb:    4920, mar:    6648, abr:    7200, mayo:   21550, junio:   28230, julio:   37400, ago:    9500, sep:    2550, grupo:'pers' },
-  { key:'salud_pers', label:'Salud', icon:'🩺', dic:  208178, ene:  215212, feb:  215726, mar:       0, abr:  192197, mayo:       0, junio:       0, julio:       0, ago:       0, sep:       0, grupo:'pers' },
-  { key:'seguros', label:'Seguros', icon:'🛡️', dic:   25087, ene:   51519, feb:   58039, mar:  274279, abr:   50253, mayo:   61932, junio:   50365, julio:   51276, ago:   51301, sep:     858, grupo:'casa' },
-  { key:'carniceria', label:'Carnicería', icon:'🥩', dic:   23700, ene:   19560, feb:       0, mar:   15710, abr:   32200, mayo:  147110, junio:   68840, julio:   44000, ago:       0, sep:       0, grupo:'casa' },
-  { key:'mascotas', label:'Mascotas', icon:'🐾', dic:   52480, ene:   65980, feb:       0, mar:   95000, abr:   32990, mayo:       0, junio:  134817, julio:  293490, ago:       0, sep:       0, grupo:'casa' },
-  { key:'tiendas_hogar', label:'Tiendas Hogar', icon:'🏡', dic:   62590, ene:  204990, feb:       0, mar:       0, abr:       0, mayo:  231000, junio:       0, julio:   49609, ago:   58126, sep:       0, grupo:'casa' },
-  { key:'salud', label:'Salud / Farmacia', icon:'💊', dic:   21988, ene:  210465, feb:       0, mar:  101397, abr:   91576, mayo:  156463, junio:  390561, julio:  289577, ago:  190952, sep:   19699, grupo:'casa' },
-  { key:'servicios', label:'Servicios Básicos', icon:'💧', dic:   99990, ene:  113990, feb:   65600, mar:   33010, abr:       0, mayo:   45579, junio:  477822, julio:   13150, ago:  540272, sep:       0, grupo:'casa' },
-  { key:'inet', label:'Inet', icon:'🛜', dic:   33390, ene:   33390, feb:   33390, mar:   33390, abr:   87789, mayo:   62889, junio:   64889, julio:   64889, ago:   64889, sep:       0, grupo:'casa' },
-  { key:'gas', label:'Gas', icon:'🔥', dic:       0, ene:       0, feb:       0, mar:       0, abr:       0, mayo:       0, junio:  199415, julio:       0, ago:       0, sep:       0, grupo:'casa' },
-  { key:'otros', label:'Otros / Servicios', icon:'🔧', dic:   38274, ene:  223444, feb:       0, mar:       0, abr:   22010, mayo:  100000, junio:   85304, julio:   60378, ago:   57740, sep:   20000, grupo:'pers' },
+  { key:'importaciones', label:'Alibaba / Proveedores', icon:'📦', dic:18451300, ene:13421018, feb: 4552385, mar:11090916, abr: 6357958, mayo:16414881, junio: 7088761, julio: 8406051, ago: 5652021, sep: 6380094, oct:  261050, grupo:'emp' },
+  { key:'aliexpress', label:'AliExpress', icon:'🌐', dic: 1038700, ene:  238982, feb:  247615, mar:  709084, abr:  295557, mayo: 1785741, junio: 1080958, julio: 1139362, ago:  314783, sep:  452033, oct:       0, grupo:'emp' },
+  { key:'cuotas', label:'Cuotas / Reestructuración', icon:'💳', dic: 1829815, ene: 2327671, feb: 2328507, mar: 2328508, abr: 2327671, mayo: 2327675, junio: 1747264, julio: 1747270, ago:  991956, sep:  991956, oct:       0, grupo:'emp' },
+  { key:'publicidad', label:'Publicidad Digital', icon:'📣', dic: 2100000, ene: 1900000, feb: 1900000, mar: 1665379, abr: 1174565, mayo: 1842189, junio: 3106193, julio: 4314613, ago: 2791948, sep: 1998481, oct:  199817, grupo:'emp' },
+  { key:'courier', label:'Courier / Envíos', icon:'🚚', dic:  351096, ene:  350000, feb:  300000, mar:  350000, abr:  156400, mayo:  361347, junio:  178173, julio:  352200, ago:  277880, sep:  145960, oct:   11900, grupo:'emp' },
+  { key:'retail', label:'Retail / Tiendas', icon:'🛍️', dic:  439970, ene:  100000, feb:   80000, mar:  231172, abr:  102910, mayo:  685053, junio:  191660, julio:   78459, ago:     616, sep:   16000, oct:  419418, grupo:'pers' },
+  { key:'gobimpuestos', label:'Gobierno / Impuestos', icon:'🏛️', dic: 1667933, ene:   66642, feb:       0, mar:       0, abr:       0, mayo: 1788066, junio:  179815, julio:  578266, ago:   32769, sep:  248254, oct:       0, grupo:'emp' },
+  { key:'compras_empresa', label:'Compras Empresa', icon:'🏢', dic:  566666, ene:  566666, feb:  566666, mar: 1102751, abr:  566666, mayo: 1590570, junio:  668065, julio:  914459, ago: 1050114, sep:  718377, oct:       0, grupo:'emp' },
+  { key:'prov_local', label:'Proveedor Local', icon:'🏪', dic:   39448, ene:       0, feb:       0, mar:   84000, abr:  143525, mayo:       0, junio:       0, julio:       0, ago:  275454, sep:       0, oct:       0, grupo:'emp' },
+  { key:'telecom', label:'Telefonía', icon:'📡', dic:   28990, ene:   57980, feb:    6370, mar:       0, abr:       0, mayo:   28600, junio:   31242, julio:   62136, ago:   64343, sep:   75809, oct:       0, grupo:'emp' },
+  { key:'onlineshopping', label:'Online Shopping', icon:'🛒', dic:  513257, ene:  253138, feb:  200000, mar:  791134, abr:  556756, mayo:  567599, junio:  368849, julio:  105655, ago:       0, sep:       0, oct:       0, grupo:'emp' },
+  { key:'digital', label:'Digital / Suscripc.', icon:'💻', dic:  106150, ene:  163366, feb:  179140, mar:  300306, abr:  373280, mayo:  183446, junio:  142124, julio:  197175, ago:  283626, sep:  459558, oct:   73669, grupo:'pers' },
+  { key:'supermercado', label:'Supermercado', icon:'🥦', dic:  299331, ene:  344738, feb:  262680, mar:  314209, abr:  245178, mayo:  417047, junio:  382367, julio:  607595, ago:  262688, sep:  330995, oct:   79026, grupo:'casa' },
+  { key:'restaurantes', label:'Restaurantes / Cafés', icon:'🍽️', dic:  409990, ene:  311686, feb:   44800, mar:   22530, abr:  135175, mayo:  117346, junio:   33550, julio:   72140, ago:   59326, sep:  139135, oct:   52045, grupo:'casa' },
+  { key:'combustible', label:'Combustible', icon:'⛽', dic:  185630, ene:  207818, feb:   91182, mar:   51129, abr:  246316, mayo:  131256, junio:  220026, julio:  132563, ago:  161901, sep:  139901, oct:   55065, grupo:'pers' },
+  { key:'snack', label:'Snack', icon:'☕', dic:    8500, ene:    7840, feb:    4920, mar:    6648, abr:    7200, mayo:   21550, junio:   28230, julio:   37400, ago:    9500, sep:   12800, oct:       0, grupo:'pers' },
+  { key:'salud_pers', label:'Salud', icon:'🩺', dic:  208178, ene:  215212, feb:  215726, mar:       0, abr:  192197, mayo:       0, junio:       0, julio:       0, ago:       0, sep:  106718, oct:       0, grupo:'pers' },
+  { key:'seguros', label:'Seguros', icon:'🛡️', dic:   25087, ene:   51519, feb:   58039, mar:  274279, abr:   50253, mayo:   61932, junio:   50365, julio:   51276, ago:   51301, sep:   66925, oct:     863, grupo:'casa' },
+  { key:'carniceria', label:'Carnicería', icon:'🥩', dic:   23700, ene:   19560, feb:       0, mar:   15710, abr:   32200, mayo:  147110, junio:   68840, julio:   44000, ago:       0, sep:   24510, oct:       0, grupo:'casa' },
+  { key:'mascotas', label:'Mascotas', icon:'🐾', dic:   52480, ene:   65980, feb:       0, mar:   95000, abr:   32990, mayo:       0, junio:  134817, julio:  293490, ago:       0, sep:   62990, oct:       0, grupo:'casa' },
+  { key:'tiendas_hogar', label:'Tiendas Hogar', icon:'🏡', dic:   62590, ene:  204990, feb:       0, mar:       0, abr:       0, mayo:  231000, junio:       0, julio:   49609, ago:   58126, sep:   54227, oct:       0, grupo:'casa' },
+  { key:'salud', label:'Salud / Farmacia', icon:'💊', dic:   21988, ene:  210465, feb:       0, mar:  101397, abr:   91576, mayo:  156463, junio:  390561, julio:  289577, ago:  190952, sep:  151745, oct:       0, grupo:'casa' },
+  { key:'servicios', label:'Servicios Básicos', icon:'💧', dic:   99990, ene:  113990, feb:   65600, mar:   33010, abr:       0, mayo:   45579, junio:  477822, julio:   13150, ago:  540272, sep:  134663, oct:       0, grupo:'casa' },
+  { key:'inet', label:'Inet', icon:'🛜', dic:   33390, ene:   33390, feb:   33390, mar:   33390, abr:   87789, mayo:   62889, junio:   64889, julio:   64889, ago:   64889, sep:   64889, oct:       0, grupo:'casa' },
+  { key:'gas', label:'Gas', icon:'🔥', dic:       0, ene:       0, feb:       0, mar:       0, abr:       0, mayo:       0, junio:  199415, julio:       0, ago:       0, sep:       0, oct:       0, grupo:'casa' },
+  { key:'otros', label:'Otros / Servicios', icon:'🔧', dic:   38274, ene:  223444, feb:       0, mar:       0, abr:   22010, mayo:  100000, junio:   85304, julio:   60378, ago:   57740, sep:  105140, oct:   41400, grupo:'pers' },
 ];
 
 // ════════════════════════════════════════════════
@@ -708,6 +712,33 @@ const ABONOS = {
     {desc:'Pago Tarjeta CMR', fecha:'03/09', monto:340003},
     {desc:'Pago Tarjeta CMR', fecha:'04/09', monto:300004},
   ]
+  ,
+  oct:[
+    {desc:'Pago Tarjeta CMR', fecha:'06/09', monto:200006},
+    {desc:'Pago Tarjeta CMR', fecha:'08/09', monto:250008},
+    {desc:'Pago Tarjeta CMR', fecha:'09/09', monto:100009},
+    {desc:'Pago Tarjeta CMR', fecha:'09/09', monto:200009},
+    {desc:'Pago Tarjeta CMR', fecha:'10/09', monto:1000010},
+    {desc:'Pago Tarjeta CMR', fecha:'10/09', monto:400010},
+    {desc:'Pago Tarjeta CMR', fecha:'11/09', monto:300011},
+    {desc:'Pago Tarjeta CMR', fecha:'11/09', monto:580011},
+    {desc:'Pago Tarjeta CMR', fecha:'12/09', monto:500012},
+    {desc:'Pago Tarjeta CMR', fecha:'14/09', monto:1000014},
+    {desc:'Pago Tarjeta CMR', fecha:'15/09', monto:1000015},
+    {desc:'Pago Tarjeta CMR', fecha:'15/09', monto:1000015},
+    {desc:'Pago Tarjeta CMR', fecha:'21/09', monto:500021},
+    {desc:'Pago Tarjeta CMR', fecha:'23/09', monto:600023},
+    {desc:'Pago Tarjeta CMR', fecha:'23/09', monto:800023},
+    {desc:'Pago Tarjeta CMR', fecha:'24/09', monto:400023},
+    {desc:'Pago Tarjeta CMR', fecha:'25/09', monto:380025},
+    {desc:'Pago Tarjeta CMR', fecha:'25/09', monto:100025},
+    {desc:'Pago Tarjeta CMR', fecha:'26/09', monto:800026},
+    {desc:'Pago Tarjeta CMR', fecha:'28/09', monto:600028},
+    {desc:'Pago Tarjeta CMR', fecha:'29/09', monto:300029},
+    {desc:'Pago Tarjeta CMR', fecha:'01/10', monto:800001},
+    {desc:'Pago Tarjeta CMR', fecha:'03/10', monto:450003},
+    {desc:'Pago Tarjeta CMR', fecha:'04/10', monto:400004},
+  ]
 };
 
 // ════════════════════════════════════════════════
@@ -715,6 +746,26 @@ const ABONOS = {
 // ════════════════════════════════════════════════
 const TX = {
   importaciones:{
+    oct:[
+      {desc:'Impuestos DHL', fecha:'11/09', monto:525052},
+      {desc:'Alibaba.com', fecha:'11/09', monto:1078686},
+      {desc:'Mp *alipaysingaporeec', fecha:'14/09', monto:138633},
+      {desc:'Alibaba.com', fecha:'15/09', monto:1051194},
+      {desc:'Mp *alipaysingaporeec', fecha:'21/09', monto:151609},
+      {desc:'Mp *alipaysingaporeec', fecha:'21/09', monto:-120961},
+      {desc:'Alibaba.com', fecha:'23/09', monto:1332879},
+      {desc:'Impuestos DHL', fecha:'24/09', monto:256693},
+      {desc:'Mp *alipaysingaporeec', fecha:'25/09', monto:79373},
+      {desc:'Mp *alipaysingaporeec', fecha:'25/09', monto:12011},
+      {desc:'Mp *alipaysingaporeec', fecha:'25/09', monto:27721},
+      {desc:'Alibaba.com', fecha:'26/09', monto:794932},
+      {desc:'Mp *alipaysingaporeec', fecha:'27/09', monto:-151609},
+      {desc:'Paypal *Shopify', fecha:'28/09', monto:84598},
+      {desc:'Impuestos DHL', fecha:'30/09', monto:273005},
+      {desc:'Alibaba.com', fecha:'01/10', monto:20526},
+      {desc:'Mp *alipaysingaporeec', fecha:'02/10', monto:108423},
+      {desc:'Mp *alipaysingaporeec', fecha:'03/10', monto:132101},
+    ],
     ene:[
       {desc:'Alibaba.com',           fecha:'08/12', monto:1809989},
       {desc:'Alibaba.com',           fecha:'09/12', monto:1928188},
@@ -872,6 +923,11 @@ const TX = {
     ]
   },
   aliexpress:{
+    oct:[
+      {desc:'Www.aliexpre', fecha:'14/09', monto:19522},
+      {desc:'Www.aliexpre', fecha:'14/09', monto:82789},
+      {desc:'Www.aliexpre', fecha:'25/09', monto:79135},
+    ],
     ene:[
       {desc:'Aliexpress',   fecha:'06/12', monto: 58254},
       {desc:'Aliexpress',   fecha:'07/12', monto: 90666},
@@ -976,6 +1032,47 @@ const TX = {
     ],
   },
   publicidad:{
+    oct:[
+      {desc:'Facebk *Ntbs44S8U4', fecha:'04/09', monto:60000},
+      {desc:'Facebk *5Easq528U4', fecha:'05/09', monto:60000},
+      {desc:'Facebk *X7Pnh2Ak64', fecha:'06/09', monto:4178},
+      {desc:'Facebk *U2X625S7U4', fecha:'06/09', monto:60000},
+      {desc:'Facebk *Hf7Gm4Ek64', fecha:'09/09', monto:5000},
+      {desc:'Facebk *Tvhxm4W7U4', fecha:'09/09', monto:64128},
+      {desc:'Facebk *3G8Bv4S8U4', fecha:'10/09', monto:45342},
+      {desc:'Facebk *3W49Z2Ak64', fecha:'10/09', monto:24399},
+      {desc:'Facebk *Z7Ehe7A8U4', fecha:'12/09', monto:60000},
+      {desc:'Facebk *Ha8S76S7U4', fecha:'14/09', monto:60000},
+      {desc:'Facebk *8Dwva728U4', fecha:'16/09', monto:60000},
+      {desc:'Facebk *Mw3Qr6S7U4', fecha:'18/09', monto:60000},
+      {desc:'Facebk *4T43Z56L64', fecha:'18/09', monto:77620},
+      {desc:'Facebk *C72B96W7U4', fecha:'20/09', monto:60000},
+      {desc:'Facebk *Hxnye6W7U4', fecha:'22/09', monto:60000},
+      {desc:'Google*Ads3609792248', fecha:'23/09', monto:300000},
+      {desc:'Google*Ads3609792248', fecha:'23/09', monto:30000},
+      {desc:'Facebk *Xvqmn6S8U4', fecha:'23/09', monto:60000},
+      {desc:'Google*Ads3609792248', fecha:'24/09', monto:14940},
+      {desc:'Facebk *M67Se7E8U4', fecha:'25/09', monto:60000},
+      {desc:'Facebk *Wyjmg768U4', fecha:'26/09', monto:60000},
+      {desc:'Google*Ads3609792248', fecha:'26/09', monto:40000},
+      {desc:'Facebk *Bkhy74Nk64', fecha:'28/09', monto:5068},
+      {desc:'Google*Ads3609792248', fecha:'28/09', monto:22620},
+      {desc:'Facebk *Vjb6A9N8U4', fecha:'28/09', monto:61809},
+      {desc:'Google*Ads3609792248', fecha:'29/09', monto:53784},
+      {desc:'Facebk *Gpwb88S7U4', fecha:'29/09', monto:60000},
+      {desc:'Facebk *Hfasd76L64', fecha:'29/09', monto:10136},
+      {desc:'Facebk *8Hjy74Nk64', fecha:'29/09', monto:5074},
+      {desc:'Facebk *2Cls872L64', fecha:'29/09', monto:20272},
+      {desc:'Google*Ads3609792248', fecha:'30/09', monto:74111},
+      {desc:'Facebk *Buzh88E8U4', fecha:'01/10', monto:38474},
+      {desc:'Dl*Google Ads', fecha:'01/10', monto:26847},
+      {desc:'Facebk *Yl9Qp7J8U4', fecha:'01/10', monto:7504},
+      {desc:'Facebk *Hh8Sn76L64', fecha:'01/10', monto:2725},
+      {desc:'Facebk *Fmzfl9N8U4', fecha:'01/10', monto:15008},
+      {desc:'Facebk *Gj6W6868U4', fecha:'02/10', monto:46191},
+      {desc:'Facebk *Vwae7Aa8U4', fecha:'03/10', monto:60547},
+      {desc:'Facebk *Mh9T66Wk64', fecha:'04/10', monto:2521},
+    ],
     ene:[
       {desc:'Facebk *x82p',fecha:'05/12',monto:60000},{desc:'Facebk *j8w4',fecha:'05/12',monto:60000},
       {desc:'Facebk *fxcr',fecha:'06/12',monto:60000},{desc:'Facebk *7dhd',fecha:'06/12',monto:60000},
@@ -1238,6 +1335,18 @@ const TX = {
     ]
   },
   courier:{
+    oct:[
+      {desc:'Blue Express Sa', fecha:'09/09', monto:11040},
+      {desc:'Blue Express Sa', fecha:'14/09', monto:28800},
+      {desc:'Blue Express Sa', fecha:'16/09', monto:6900},
+      {desc:'Blue Express Sa', fecha:'21/09', monto:38500},
+      {desc:'Blue Express Sa', fecha:'24/09', monto:15000},
+      {desc:'Blue Express Sa', fecha:'25/09', monto:3800},
+      {desc:'Blue Express Sa', fecha:'25/09', monto:3100},
+      {desc:'Blue Express Sa', fecha:'28/09', monto:16900},
+      {desc:'Blue Express Sa', fecha:'29/09', monto:12800},
+      {desc:'Blue Express Sa', fecha:'02/10', monto:11900},
+    ],
     ene:[
       {desc:'Blue Express SA',fecha:'06/12',monto:16900},{desc:'Blue Express SA',fecha:'09/12',monto:11200},
       {desc:'Blue Express SA',fecha:'10/12',monto:22600},{desc:'Blue Express SA',fecha:'11/12',monto:17100},
@@ -1366,6 +1475,11 @@ const TX = {
     ]
   },
   cuotas:{
+    oct:[
+      {desc:'Mercadopago *Mercadol', fecha:'05/09', monto:2056},
+      {desc:'Super Avance Con Seguro Transferencias Electronica', fecha:'05/09', monto:497856},
+      {desc:'Reestructuracion Super Avance', fecha:'05/09', monto:492044},
+    ],
     ene:[
       {desc:'Reestructuración Línea Compras',fecha:'ago/25',monto:757364},
       {desc:'Reestructuración Súper Avance', fecha:'ago/25',monto:492044},
@@ -1420,6 +1534,10 @@ const TX = {
     ]
   },
   mascotas:{
+    oct:[
+      {desc:'Punto Mascotas', fecha:'17/09', monto:32990},
+      {desc:'Veterinario Clan', fecha:'27/09', monto:30000},
+    ],
     ene:[
       {desc:'Vet Webpay Plus',   fecha:'15/12', monto:35700},
       {desc:'Merpago*razas',     fecha:'17/12', monto:16780},
@@ -1450,6 +1568,9 @@ const TX = {
     ]
   },
   tiendas_hogar:{
+    oct:[
+      {desc:'SODIMAC HC Huechuraba', fecha:'15/09', monto:54227},
+    ],
     ene:[
       {desc:'Easy Costanera Center',  fecha:'19/12', monto:25750},
       {desc:'Sodimac HC Huechuraba',  fecha:'07/12', monto:36840},
@@ -1475,6 +1596,11 @@ const TX = {
     ]
   },
   compras_empresa:{
+    oct:[
+      {desc:'Shopify* 584338234', fecha:'05/09', monto:1130},
+      {desc:'Shopify* 588245047', fecha:'13/09', monto:145753},
+      {desc:'Forum', fecha:'14/09', monto:571494},
+    ],
     ene:[
       {desc:'Forum (cuota)',fecha:'22/12',monto:566666},
     ],
@@ -1515,6 +1641,9 @@ const TX = {
     ]
   },
   gobimpuestos:{
+    oct:[
+      {desc:'Sii', fecha:'21/09', monto:248254},
+    ],
     ene:[
       {desc:'TGR',                fecha:'30/12', monto:1667933},
     ],
@@ -1612,6 +1741,21 @@ const TX = {
     ]
   },
   supermercado:{
+    oct:[
+      {desc:'Lider.Cl', fecha:'12/09', monto:64695},
+      {desc:'Lider.Cl', fecha:'13/09', monto:-6657},
+      {desc:'Lider.Cl', fecha:'16/09', monto:37060},
+      {desc:'Tottus Chamisero', fecha:'17/09', monto:46980},
+      {desc:'Lider.Cl', fecha:'21/09', monto:93406},
+      {desc:'Lider.Cl', fecha:'22/09', monto:-20800},
+      {desc:'Merpago*Peruviamarket', fecha:'24/09', monto:1990},
+      {desc:'Lider.Cl', fecha:'24/09', monto:30741},
+      {desc:'Lider.Cl', fecha:'28/09', monto:63880},
+      {desc:'Emporio Lo Pinto Spa', fecha:'29/09', monto:6710},
+      {desc:'Lider.Cl', fecha:'02/10', monto:72481},
+      {desc:'Autoservicio Cl Alema', fecha:'02/10', monto:5304},
+      {desc:'Lider.Cl', fecha:'02/10', monto:1241},
+    ],
     ene:[
       {desc:'Jumbo',              fecha:'10/12',monto:18440},{desc:'Jumbo',              fecha:'14/12',monto:35900},
       {desc:'Jumbo',              fecha:'17/12',monto:27150},{desc:'Jumbo',              fecha:'21/12',monto:21980},
@@ -1713,6 +1857,22 @@ const TX = {
     ]
   },
   restaurantes:{
+    oct:[
+      {desc:'Mercadopago *Donricha', fecha:'08/09', monto:21750},
+      {desc:'Tuu*Fait Par Marie', fecha:'13/09', monto:2500},
+      {desc:'Coffee And Choc', fecha:'15/09', monto:18821},
+      {desc:'Cupbab Express Spa', fecha:'15/09', monto:9500},
+      {desc:'Merpago*Donrichard', fecha:'20/09', monto:4830},
+      {desc:'Margo Chicureo', fecha:'23/09', monto:51040},
+      {desc:'Curry & Kabab Indian', fecha:'24/09', monto:9350},
+      {desc:'Merpago*Bigopizza', fecha:'26/09', monto:5900},
+      {desc:'Merpago*Aramark', fecha:'30/09', monto:15444},
+      {desc:'Mc Donalds Providencia 3', fecha:'01/10', monto:1000},
+      {desc:'Merpago*Bigopizza', fecha:'01/10', monto:6700},
+      {desc:'Merpago*Dondeelchelo', fecha:'02/10', monto:3000},
+      {desc:'Merpago*Dondeelchelo', fecha:'02/10', monto:1250},
+      {desc:'De La Ostia Providencia', fecha:'03/10', monto:40095},
+    ],
     ene:[
 {desc:'La Pica de Lo Pinto', fecha:'11/12',monto:18700},
       {desc:'La Pica de Lo Pinto', fecha:'18/12',monto:21900},{desc:'Dominos',             fecha:'13/12',monto:22490},
@@ -1771,6 +1931,12 @@ const TX = {
     ]
   },
   combustible:{
+    oct:[
+      {desc:'Shell Panam. Norte', fecha:'04/09', monto:52082},
+      {desc:'Shell Panam. Norte', fecha:'12/09', monto:68900},
+      {desc:'Shell Panam. Norte', fecha:'26/09', monto:18919},
+      {desc:'Shell.F522 Av.P.Ed Mo', fecha:'03/10', monto:55065},
+    ],
     ene:[
       {desc:'Shell',               fecha:'05/12',monto:35000},{desc:'Shell',               fecha:'12/12',monto:42730},
       {desc:'Copec',               fecha:'19/12',monto:38500},{desc:'Shell',               fecha:'26/12',monto:40000},
@@ -1814,6 +1980,10 @@ const TX = {
     ]
   },
   seguros:{
+    oct:[
+      {desc:'Kushkiseguros', fecha:'23/09', monto:66067},
+      {desc:'02-12 Seg Desgravamen 06247', fecha:'02/10', monto:863},
+    ],
     ene:[
       {desc:'Kushkiseguros',        fecha:'23/11',monto:49410},      {desc:'Seg. Desgravamen',     fecha:'02/12',monto:843},  {desc:'Seguro Autom.',         fecha:'10/12',monto:7650},
     ],
@@ -1847,6 +2017,10 @@ const TX = {
     ]
   },
   carniceria:{
+    oct:[
+      {desc:'Carnes Ganadera El Co', fecha:'17/09', monto:10720},
+      {desc:'Carnes Ganadera El Co', fecha:'22/09', monto:13790},
+    ],
     ene:[
       {desc:'Carnes Ganadera El C', fecha:'10/12',monto:12700},{desc:'Carnes Ganadera El C',fecha:'22/12',monto:11000},
     ],
@@ -1882,6 +2056,18 @@ const TX = {
     ]
   },
   salud:{
+    oct:[
+      {desc:'Salcobrand Sb Farma', fecha:'05/09', monto:34188},
+      {desc:'Botica 911', fecha:'06/09', monto:8000},
+      {desc:'Salcobrand Sb Farma', fecha:'09/09', monto:-2199},
+      {desc:'Dr. Clinica Alemana Santi', fecha:'10/09', monto:5805},
+      {desc:'Farmacia Bicentenario', fecha:'10/09', monto:2990},
+      {desc:'Sb 615', fecha:'12/09', monto:53110},
+      {desc:'Dr. Clinica Alemana Santi', fecha:'23/09', monto:5805},
+      {desc:'Merpago*Farmaciasalk', fecha:'26/09', monto:12440},
+      {desc:'Dr. Clinica Alemana Santi', fecha:'30/09', monto:6102},
+      {desc:'Dr. Clinica Alemana Santi', fecha:'30/09', monto:5805},
+    ],
     ene:[
       {desc:'Farmacia Bicentenario', fecha:'14/12',monto:15988},{desc:'Clínica Alemana STG', fecha:'20/12',monto:6000},
     ],
@@ -1947,6 +2133,12 @@ const TX = {
     ]
   },
   retail:{
+    oct:[
+      {desc:'RedGloba*PARIS', fecha:'08/09', monto:4000},
+      {desc:'RedGloba*PARIS', fecha:'11/09', monto:4000},
+      {desc:'RedGloba*PARIS', fecha:'22/09', monto:4000},
+      {desc:'Plaza Egana', fecha:'01/10', monto:419418},
+    ],
     ene:[
       {desc:'Falabella.com',        fecha:'10/12',monto:199990},{desc:'Ripley',              fecha:'18/12',monto:149990},
       {desc:'Paris',                fecha:'22/12',monto:89990},    ],
@@ -1990,6 +2182,28 @@ const TX = {
     ]
   },
   digital:{
+    oct:[
+      {desc:'Dl*Google Youtube', fecha:'05/09', monto:11000},
+      {desc:'Apple.Com/Bill', fecha:'05/09', monto:19990},
+      {desc:'Apple.Com/Bill', fecha:'05/09', monto:4923},
+      {desc:'Canva', fecha:'08/09', monto:7900},
+      {desc:'Apple.Com/Bill', fecha:'09/09', monto:32554},
+      {desc:'Apple.Com/Bill', fecha:'09/09', monto:18496},
+      {desc:'Apple.Com/Bill', fecha:'11/09', monto:9990},
+      {desc:'Apple.Com/Bill', fecha:'11/09', monto:18290},
+      {desc:'Dropbox*Vqjmlkms8Bzv', fecha:'12/09', monto:15296},
+      {desc:'Higgsfield Inc.', fecha:'15/09', monto:4970},
+      {desc:'Apple.Com/Bill', fecha:'15/09', monto:20136},
+      {desc:'Apple.Com/Bill', fecha:'17/09', monto:30000},
+      {desc:'Apple.Com/Bill', fecha:'17/09', monto:16149},
+      {desc:'Apple.Com/Bill', fecha:'21/09', monto:35700},
+      {desc:'Apple.Com/Bill', fecha:'22/09', monto:3290},
+      {desc:'Higgsfield Inc.', fecha:'22/09', monto:48265},
+      {desc:'Anthropic* Claude Sub', fecha:'30/09', monto:98811},
+      {desc:'Apple.Com/Bill', fecha:'30/09', monto:4480},
+      {desc:'CLOUD FxKDzV', fecha:'01/10', monto:24598},
+      {desc:'Higgsfield Inc.', fecha:'03/10', monto:49071},
+    ],
     ene:[
 {desc:'Spotify',              fecha:'07/12',monto:5490},
       {desc:'Amazon Prime',        fecha:'10/12',monto:3990},{desc:'Microsoft 365',        fecha:'12/12',monto:6990},
@@ -2104,6 +2318,11 @@ const TX = {
     ]
   },
   servicios:{
+    oct:[
+      {desc:'Coop Agua Potable', fecha:'21/09', monto:9580},
+      {desc:'Enel (Luz)', fecha:'26/09', monto:116663},
+      {desc:'Coop Agua Potable', fecha:'30/09', monto:8420},
+    ],
     sept:[
       {desc:'Luz (Estado)', fecha:'06/08', monto:532452},
     ],
@@ -2138,6 +2357,9 @@ const TX = {
     ],
   },
   telecom:{
+    oct:[
+      {desc:'Telefónica', fecha:'16/09', monto:75809},
+    ],
     ene:[
       {desc:'Movistar', fecha:'20/12', monto:28990},
     ],
@@ -2168,6 +2390,11 @@ const TX = {
     ],
   },
   inet:{
+    oct:[
+      {desc:'Capital Net', fecha:'24/09', monto:14900},
+      {desc:'Netflix', fecha:'26/09', monto:12990},
+      {desc:'Starlink', fecha:'27/09', monto:36999},
+    ],
     ene:[
       {desc:'Netflix', fecha:'05/12', monto:8490},
       {desc:'Capital Net', fecha:'08/12', monto:24900},
@@ -2212,6 +2439,12 @@ const TX = {
     ],
   },
   snack:{
+    oct:[
+      {desc:'Petit Cafe', fecha:'05/09', monto:1350},
+      {desc:'Mercadopago *Cafefant', fecha:'13/09', monto:3800},
+      {desc:'Merpago*Cafedonrafe', fecha:'22/09', monto:2550},
+      {desc:'Merpago*Cafedonrafe', fecha:'24/09', monto:2550},
+    ],
     ene:[
       {desc:'Cafetería', fecha:'30/12', monto:8500},
     ],
@@ -2266,6 +2499,9 @@ const TX = {
     ],
   },
   salud_pers:{
+    oct:[
+      {desc:'Cotización Salud', fecha:'30/09', monto:106718},
+    ],
     ene:[
       {desc:'Cotización Salud', fecha:'13/11', monto:175362},
     ],
@@ -2298,6 +2534,25 @@ const TX = {
     ],
   },
   otros:{
+    oct:[
+      {desc:'Saba Estacionamento', fecha:'04/09', monto:400},
+      {desc:'Matias Vargas Miran', fecha:'10/09', monto:13090},
+      {desc:'Centroparque', fecha:'13/09', monto:500},
+      {desc:'Vida Parque', fecha:'13/09', monto:6000},
+      {desc:'Mercadopago *Ricardo', fecha:'14/09', monto:19120},
+      {desc:'Saba Estacionamientos', fecha:'15/09', monto:1000},
+      {desc:'Okm Metro Los Leones', fecha:'15/09', monto:5380},
+      {desc:'Merpago*Matrimoniosye', fecha:'19/09', monto:11000},
+      {desc:'Merpago*Matrimoniosye', fecha:'19/09', monto:12000},
+      {desc:'Matias Vargas Miran', fecha:'20/09', monto:1750},
+      {desc:'Donando', fecha:'21/09', monto:2000},
+      {desc:'Merpago*Orionspa', fecha:'22/09', monto:9480},
+      {desc:'Matias Vargas Miran', fecha:'29/09', monto:3420},
+      {desc:'Payscan*Saba Est', fecha:'01/10', monto:3600},
+      {desc:'Merpago*Barberiaauge', fecha:'01/10', monto:17000},
+      {desc:'Saba Estacionamento', fecha:'02/10', monto:800},
+      {desc:'Transferencia a Ahorro', fecha:'02/10', monto:20000},
+    ],
     ene:[
       {desc:'Saba Estacionam.',     fecha:'10/12',monto:2450}, {desc:'Lavandería',          fecha:'14/12',monto:7100},
       {desc:'Rosen',                fecha:'22/12',monto:28724},
@@ -2393,8 +2648,9 @@ const MONTHS=[
   {k:'julio',label:'Jul 2026', mm:'07'},
   {k:'ago',  label:'Ago 2026', mm:'08'},
   {k:'sep',  label:'Sep 2026', mm:'09'},
+  {k:'oct',  label:'Oct 2026', mm:'10'},
 ];
-const MONTH_FULL={dic:'Dic 2025',ene:'Ene 2026',feb:'Feb 2026',mar:'Mar 2026',abr:'Abr 2026',mayo:'May 2026',junio:'Jun 2026',julio:'Jul 2026',ago:'Ago 2026',sep:'Sep 2026'};
+const MONTH_FULL={dic:'Dic 2025',ene:'Ene 2026',feb:'Feb 2026',mar:'Mar 2026',abr:'Abr 2026',mayo:'May 2026',junio:'Jun 2026',julio:'Jul 2026',ago:'Ago 2026',sep:'Sep 2026',oct:'Oct 2026'};
 const COLORS=['#6366f1','#06b6d4','#10b981','#f59e0b','#ef4444','#a78bfa','#38bdf8','#34d399','#fbbf24','#f87171','#818cf8','#67e8f9','#6ee7b7','#fcd34d','#fca5a5'];
 
 let landingMonth='junio', currentGroup='emp', detailMonth='junio', currentCat=null, mvMonth='ambos', abMonth='ambos';
@@ -2410,7 +2666,7 @@ function gCats(g,m){return CATS.filter(c=>c.grupo===g).map(c=>({...c,val:gv(c,m)
 function gTotal(g,m){return gCats(g,m).reduce((s,c)=>s+c.val,0);}
 function grand(m){return CATS.reduce((s,c)=>s+gv(c,m),0);}
 // Claves de facturación (internas, no cambian)
-const BILLING_KEYS=['ene','feb','mar','abr','mayo','junio','julio','agosto','sept'];
+const BILLING_KEYS=['ene','feb','mar','abr','mayo','junio','julio','agosto','sept','oct'];
 function getTX(key,m){
   if(!TX[key])return[];
   const all=BILLING_KEYS.flatMap(bk=>TX[key][bk]||[]);
